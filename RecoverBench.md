@@ -135,9 +135,9 @@ Task recovery is evaluated with GPT-4o as the executor and GPT-4o-mini for memor
 
 **A3:**
 1. 强调为了保证一个严谨的评估。我们固定了base model和保证所有的样本都是Base model在 uninterrupted情况下可以解决的。
-2. 这样才能反应，在Task resumption和Task rollback的情况下， Memory system对于的Task recovery capability怎么样？不会收到base model的影响
+2. 这样才能反应，在Task resumption和Task rollback的情况下， Memory system对于的Task recovery capability怎么样？不会受到base model能力的影响
 
-但是为了打消你的顾虑，我们还在用新的base model进行了实验
+但是为了打消你的顾虑，我们还在用新的base model进行了实验【从sample里面挑一些qwen，不同size的模型，在uninterrupted情况下可以解决的跑】
 
 -------
 

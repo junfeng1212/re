@@ -5,8 +5,8 @@
 **A1:** We appreciate your thoughtful comments on our work. We hope the following responses address your concerns.
 
 1. 强调贡献： 我们提出一个benchmark来评测了一个过去bench都忽略的一个问题： task recovery abilities
-2.  **416 cases derive from only 104 independent tasks & averaging approximately 13.89 steps.** ：太大的样本量会极具增加Agent的评测成本，因为每个样本agent都需要多次LLM的推理 -》 选取这个数字是出于评估成本的考虑
-3.  **uses one executor model, injected rollback failures, and a known recovery step.**： 使用这些setting是为了提供一个严谨controllable的评测 -》隔离base model的能力，failures噪声对评测结果的影响，让我们的分析更reliable -》以GPT 4o所有成功样本的base数据为例，使用成功样本作为base数据，能够隔离base模型的强弱对最终评测的影响。
+2. 强调我们的这个样本量已经足够，其他的方法也是这个数量。 此外，评估成本是很大的， 构建这个数据集我们就花了1800usd，所以评估起来的成本也很大。
+3.   使用这些setting是为了提供一个严谨controllable的评测 -》隔离base model的能力，failures噪声对评测结果的影响，让我们的分析更reliable -》以GPT 4o所有成功样本的base数据为例，使用成功样本作为base数据，能够隔离base模型的强弱对最终评测的影响。
 4.  **核心不仅仅在于数据，同时也有构造数据的pipeline。** 强调我们的工作不仅仅提供了一个可以直接评估的benchmark，也提出了一个严谨的数据构造pipeline以评估Agent Memory在task recovery ability上面能力。
 
 -------
@@ -15,10 +15,9 @@
 
 **A2:** Thanks for your insightful views for our work. 
 
-**RecoverMemBench uncovers the piror work's drawbacks on task recovery ability.** 
-强调benchmark是核心贡献 -》 基于benchmark分析出过去方法在task recovery上的不足-》基于分析我们提出一个直接的方法，RecoverMem
+强调我们的贡献， 第一个benchmark提出来研究这个问题的 -》 基于benchmark分析出过去方法在task recovery上的不足-》基于分析我们提出一个直接的方法，RecoverMem
 
-**Although version-aware baselines are capable of RecoverMem, they incur substantial storage requirements.** 尽管version-aware baselines和我们的方法能力相当，但是他们需要几十倍额外的存储空间【Appendix Table 4】。这使得他们的方法unpractial。
+**Version-aware baselines incur substantial costs, overpassing our method about 30 times at least.** version-aware baselines他们需要几十倍额外的存储空间【Appendix Table 4】。这使得他们的方法unpractial。
 
 -------
 
@@ -50,9 +49,7 @@
 
 **W2:** The rollback mismatch exists only because the environment is rolled back but the memory is not; RecoverMem's step-indexed retrieval then amounts to a checkpoint.
 
-**A2:** 认可这个说法 -》 但是过去的方法都忽略了这个问题 -》 虽然能直接存储checkpoint但是额外的成本很难控制 导致方法并不practical 给出Appendix Table4】
-
-强调 benchmark是核心 -》 过去的方法忽视了这个问题 -》 benchmark通过设计practical的setting找出问题所在
+**A2:**  这个说法正是我们的工作highlight的地方【贡献】-》但是过去的方法都忽略了这个问题 -》此外， 虽然能直接存储checkpoint但是额外的成本很难控制 导致方法并不practical 给出Appendix Table4】
 
 ----
 
@@ -60,11 +57,9 @@
 
 **A3:**
 1. 强调贡献： 我们提出一个benchmark来评测了一个过去bench都忽略的一个问题： task recovery abilities
-2.  **416 cases derive from only 104 independent tasks & averaging approximately 13.89 steps.** ：太大的样本量会极具增加Agent的评测成本，因为每个样本agent都需要多次LLM的推理 -》 选取这个数字是出于评估成本的考虑
-3.  **uses one executor model, injected rollback failures, and a known recovery step.**： 使用这些setting是为了提供一个严谨controllable的评测 -》隔离base model的能力，failures噪声对评测结果的影响，让我们的分析更reliable -》以GPT 4o所有成功样本的base数据为例，使用成功样本作为base数据，能够隔离base模型的强弱对最终评测的影响。
+2. 强调我们的这个样本量已经足够，其他的方法也是这个数量。 此外，评估成本是很大的， 构建这个数据集我们就花了1800usd，所以评估起来的成本也很大。
+3.   使用这些setting是为了提供一个严谨controllable的评测 -》隔离base model的能力，failures噪声对评测结果的影响，让我们的分析更reliable -》以GPT 4o所有成功样本的base数据为例，使用成功样本作为base数据，能够隔离base模型的强弱对最终评测的影响。
 4.  **核心不仅仅在于数据，同时也有构造数据的pipeline。** 强调我们的工作不仅仅提供了一个可以直接评估的benchmark，也提出了一个严谨的数据构造pipeline以评估Agent Memory在task recovery ability上面能力。
-5.  我么会在limitation里面讨论这一点
-
 
 ------
 
@@ -78,7 +73,7 @@
 
 **W5:** It is tailored to SWE tasks and evaluated only on the authors' own benchmark, not on existing memory benchmarks.
 
-**A5:**  强调bench是核心贡献 -> 现有的memory bench把这个问题给忽略了 他们很难评估
+**A5:**  强调bench是核心贡献 -> 现有的memory bench把这个问题给忽略， 我们是第一个系统性地研究这个问题 -》 其他的benchmark无法研究这个问题
 
 ---
 
@@ -128,7 +123,7 @@
 
 **A2:** 
 1. 强调benchmark是核心的贡献，过去的方法忽视了这个, 基于我们benchmark的分析，我们才知道解决这个问题方案的。
-2. 说明虽然过去的方法用了snapshot-adapted, 它会带来相近的结果。但是它引来的额外的成本是巨大的。这使得这些方法每一步都存储起来， 就变得unpractical
+2. snapshot-adapted它引来的额外的成本是巨大的。这使得这些方法每一步都存储起来， 就变得unpractical
 
 **W3:** It is unclear how the gains depend on the underlying model.
 Task recovery is evaluated with GPT-4o as the executor and GPT-4o-mini for memory construction (Section 3). It therefore remains unclear how much additional value RecoverMem provides when the executor is stronger or differs in its ability to use long histories. Comparisons across capability levels and within-family model sizes would help establish whether the gains are robust or mainly specific to the current model configuration.

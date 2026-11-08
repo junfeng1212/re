@@ -6,12 +6,11 @@ Thanks for your thoughtful comments on our work. We hope the following replies c
 
 **A1:** Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
 
-**RecoverMemBench provides sufficient dataset for evaluation while aligning with the scale of established agent benchmarks.**
-Our benchmark 
+**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like LoCoMo and LongMemEval. Moreover, constructing these dataset alone cost over $1,800 USD, making this scale essential for affordable evaluation. 
 
-**Our settings can ensure a strictly controlled evaluation that isolates recovery capabilities from confounding factors.** To rigourously evaluate task recovery ability of current methods, we build our dataset with solvable samples under uninterrupted tasks with specific agent framework. That settings can prevent other factors (e.g., base model abilities, agent framework design, error types) affect the evaluations of task recovery.
+**Our settings ensure a strictly controlled evaluation that isolates memory recovery capabilities from confounding factors.** By building our dataset from tasks solved three consecutive times without interruption and fixing the executor, injected errors, and recovery steps, we prevent external variables (e.g., base model limits, agent framework design, or random error types) from distorting the evaluation of task recovery.
 
-**Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline for evaluating agent memory.** Since our work firstly studies the task recovery settings systematically, our work not provides off-shelf dataset for evaluation but also the rigorous data construction pipeline for evaluating task recovery capabilties of current agent memory.
+**Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline.** As the first systematic study of agent task recovery, we provide not only a ready to use benchmark, but also a reproducible pipeline for interruption, error injection, and state restoration that readily extends to other models and failure scenarios.
 
 
 2. 强调我们的这个样本量已经足够，其他的方法也是这个数量。 此外，评估成本是很大的， 构建这个数据集我们就花了1800usd，所以评估起来的成本也很大。
@@ -32,24 +31,30 @@ Our benchmark
 
 | Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
 | :--- | :---: | :---: | :---: | :---: |
-| A-MEM (Version-aware) | 43.27 | 70.56 | 36.00 | 19.57$\times$ |
-| Mem0 (Version-aware) | 42.31 | 62.16 | 203.66 | 110.68$\times$ |
-| MemGPT (Version-aware) | 41.34 | 66.33 | 70.53 | 38.33$\times$ |
-| MemoryOS (Version-aware) | 39.42 | 112.78 | 566.26 | 307.75$\times$ |
-| **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00$\times$** |
+| A-MEM (Version-aware) | 43.27 | 70.56 | 36.00 | 19.57X |
+| Mem0 (Version-aware) | 42.31 | 62.16 | 203.66 | 110.68X |
+| MemGPT (Version-aware) | 41.34 | 66.33 | 70.53 | 38.33X |
+| MemoryOS (Version-aware) | 39.42 | 112.78 | 566.26 | 307.75X |
+| **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
 
 -------
 
 **Q1:** How would RecoverMem identify valid state when there is no reliable global rollback step?
 
-**A3:** 强调我们的bench里面 task rollback setting就是需要先知道global rollback step； 这个也符合现在practical的场景：human先分析为什么agent失败 -》 找到原因及问题step -》 直接rollback 【主要强调setting符合practial场景】
+**A3:** Thanks for your question regarding our method design.
+
+Our rollback setting aligns with practical deployment workflows, where restoring the environment inherently specifies the rollback step $k$. In real-world scenarios, environment rollback is a targeted operation: people inspects the failed trajectory, locates the erroneous step, and reverts the workspace to the last valid state s_k. Because executing this environment restoration already identifies step $k$, RecoverMem directly uses $k$ to retrieve the exact task state $m_k$ without requiring extra assumptions. 
+
+强调我们的bench里面 task rollback setting就是需要先知道global rollback step； 这个也符合现在practical的场景：human先分析为什么agent失败 -》 找到原因及问题step -》 直接rollback 【主要强调setting符合practial场景】
 
 -------
 
 **Q2:** How can the system retain knowledge from a failed suffix without reintroducing invalid progress?
-解释方法的机制
 
-**A4:** 当需要rollback的时候， 比如rollback到 k step， RecoverMem会reflect k+1 到 final step T的记忆来总结出错误的exploration，从而避免reintroducing invalid progress。
+
+**A4:** Thanks for your question regarding our experience retention mechanism.
+
+RecoverMem prevent valid progress from failed explorations by anchoring the task state strictly to $m_k$ while selectively distilling the failed suffix $\{m_{k+1}, \dots, m_T\}$ into a failure experience module. Given the rollback step $k$, RecoverMem retrieves the exact snapshot $m_k$ so that the established progress and remaining subgoals strictly reflect the restored environment $s_k$, completely discarding any invalid state updates recorded after step $k$. Meanwhile, our Reflection mechanism summarizes the flawed trajectory from $m_{k+1}$ to $m_T$ and appends only the failure lessons into the dedicated failed field of $m_k$ to get $\tilde{m}_k$. This way allows the agent to retain knowledge of prior exploration faults without mistaking undone actions for completed work.
 
 -------
 

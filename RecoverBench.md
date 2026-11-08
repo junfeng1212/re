@@ -56,13 +56,22 @@ Our rollback setting aligns with practical deployment workflows, where restoring
 
 RecoverMem prevent valid progress from failed explorations by anchoring the task state strictly to $m_k$ while selectively distilling the failed suffix $\{m_{k+1}, \dots, m_T\}$ into a failure experience module. Given the rollback step $k$, RecoverMem retrieves the exact snapshot $m_k$ so that the established progress and remaining subgoals strictly reflect the restored environment $s_k$, completely discarding any invalid state updates recorded after step $k$. Meanwhile, our Reflection mechanism summarizes the flawed trajectory from $m_{k+1}$ to $m_T$ and appends only the failure lessons into the dedicated failed field of $m_k$ to get $\tilde{m}_k$. This way allows the agent to retain knowledge of prior exploration faults without mistaking undone actions for completed work.
 
+
+Thanks again for your question. We believe this discussion can make our work more clear, and will add it into our new version.
+
+We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
+
 -------
+-------
+
 
 ## Reviewer KFmi [Clear Rejection]
 
 **W1:** The problem setting is not well motivated: Practical systems persist session logs and checkpoint the environment and memory together; providing the full previous trajectory, which fits in context here, is not compared.
 
 **A1:** 
+
+
 1. 给出full history时候的表现 -》 分析不好的原因 【full history的noisy 太大，并且上下文窗口有限制】 -》 强调一直保留full context和 checkpoint of environment and memory 会到来巨大的额外存储成本，使得不practical 【给出Appendix Table4】
 
 2. baseline里面有方法是直接把 原始context保存下来的 【MemGPT】，如果直接存储checkpoint的话，会带来70x的存储成本
@@ -73,13 +82,42 @@ RecoverMem prevent valid progress from failed explorations by anchoring the task
 
 **W2:** The rollback mismatch exists only because the environment is rolled back but the memory is not; RecoverMem's step-indexed retrieval then amounts to a checkpoint.
 
-**A2:**  这个说法正是我们的工作highlight的地方【贡献】-》但是过去的方法都忽略了这个问题 -》此外， 虽然能直接存储checkpoint但是额外的成本很难控制 导致方法并不practical 给出Appendix Table4】
+**A2:**  Thanks for your questions about our proposed method. We hope the following replies can address your concerns:
+
+**That's a scenario that prior memory benchmarks do not evaluate and that RecoverMemBench evaluates systematically.** We agree that the mismatch arises because the environment is rolled back while memory is not, and we adopt this setting by design: memory persists outside the agent process, and the failed suffix contains lessons that prevent repeated exploration, so rolling memory back together with the environment would discard them. The challenge is therefore to retain the full memory while keeping it consistent with the restored environment, a requirement that prior memory benchmarks do not evaluate and that RecoverMemBench examines systematically.
+
+**RecoverMem is not a plain checkpoint**, for three reasons: 
+i) Each entry is a structured task state record (completed progress, remaining subgoals, failed attempts) rather than a copy of the memory bank. 
+ii) After rollback, it reflects on entries m_{k+1} to m_T to update the experience module, which a checkpoint would discard; removing this Reflection lowers RR from 43.27% to 38.46% and raises AS from 89.35% to 117.62% (Table 2). 
+ii) Snapshots alone do not resolve the retrieval bottleneck, since entries from different steps of the same task remain semantically similar (Section 3.2.1).
+
+**We also test the checkpoint view directly by equipping four baselines with stepwise snapshots (Appendix C.1, Table 4).** Because existing systems are not designed for rollback, this duplicates the full memory bank at every step and costs 36.00 to 566.26 MiB, whereas RecoverMem matches the best version-aware baseline (A-MEM, 43.27% RR) with only 1.84 MiB. Three of the four version-aware baselines obtain lower AS than RecoverMem, so our advantage lies mainly in storage efficiency at comparable RR. This exposes a trade-off between state consistency and storage efficiency, which we hope motivates lightweight, recovery-aware agent memory.
+
+| Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
+| :--- | :---: | :---: | :---: | :---: |
+| A-MEM (Stepwise) | 43.27 | 70.56 | 36.00 | 19.57X |
+| Mem0 (Stepwise) | 42.31 | 62.16 | 203.66 | 110.68X |
+| MemGPT (Stepwise) | 41.34 | 66.33 | 70.53 | 38.33X |
+| MemoryOS (Stepwise) | 39.42 | 112.78 | 566.26 | 307.75X |
+| **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
+
+
+这个说法正是我们的工作highlight的地方【贡献】-》但是过去的方法都忽略了这个问题 -》此外， 虽然能直接存储checkpoint但是额外的成本很难控制 导致方法并不practical 给出Appendix Table4】
 
 ----
 
 **W3:** The benchmark does not support the claims: 104 tasks that GPT-4o solves reliably, with a median of 11 steps, one agent, one backbone, and one run per setting, far from the hundreds of actions in the motivation. Interruption points are set from the known length of successful runs, and rollback errors are injected by an LLM rather than made by the agent.
 
 **A3:**
+Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
+
+**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like LoCoMo and LongMemEval. Moreover, constructing these dataset alone cost over $1,800 USD, making this scale essential for affordable evaluation. 
+
+**Our settings ensure a strictly controlled evaluation that isolates memory recovery capabilities from confounding factors.** By building our dataset from tasks solved 3 times without interruption and fixing the executor, injected errors by LLMs, and recovery steps, we prevent external variables (e.g., base model limits, agent framework design, or random error types) from distorting the evaluation of task recovery, making our evaluation more reliable and systematical.
+
+**Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline.** As the first systematic study of agent task recovery, we provide not only a ready to use benchmark, but also a reproducible pipeline for interruption, error injection, and state restoration that readily extends to other models and failure scenarios.
+
+
 1. 强调贡献： 我们提出一个benchmark来评测了一个过去bench都忽略的一个问题： task recovery abilities
 2. 强调我们的这个样本量已经足够，其他的方法也是这个数量。 此外，评估成本是很大的， 构建这个数据集我们就花了1800usd，所以评估起来的成本也很大。
 3.   使用这些setting是为了提供一个严谨controllable的评测 -》隔离base model的能力，failures噪声对评测结果的影响，让我们的分析更reliable -》以GPT 4o所有成功样本的base数据为例，使用成功样本作为base数据，能够隔离base模型的强弱对最终评测的影响。
@@ -89,7 +127,27 @@ RecoverMem prevent valid progress from failed explorations by anchoring the task
 
 **W4:** The evaluation of RecoverMem is not convincing: It receives the git diff (Figure 7) and the rollback step index, which the baselines do not; with step-wise snapshots, baselines reach similar recovery rates (Appendix C.1).
 
-**A4:**
+**A4:** Thanks for your thoughtful views about our evaluation pipeline. We hope the following replies can make our evaluation more clear:
+
+**git diff and rollback step index can be accessed by all methods.** 
+
+**Baselines with step-wise snapshots incur prohibitive storage costs that exceed RecoverMem by 19.57 to 307.75 times, rendering them impractical for real-world scenarios.** Since existing memory systems are not natively designed for state rollback, preserving historical states requires duplicating their full memory banks at every step. As shown in Table 4 (summarized below), maintaining recovery effectiveness with step-wise snapshots requires between 36.00 MiB and 566.26 MiB of storage. In contrast, RecoverMem achieves the highest recovery rate (43.27%) using only 1.84 MiB by recording compact structured state updates at each step. Therefore, our method would be more efficient in the real-world.
+
+Additionally, experiments on baselines with step-wise snapshots is to validate the findings in our work (mismatch between environment and memory state). This promising improvements (Appendix C.1) further suppoert the findings in our work.
+
+Overall, our work firstly systematically investigate a crucial but ignored capabililty of agent memory, task recovery abilities, and provide a solid foundation for future research.
+
+
+
+| Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
+| :--- | :---: | :---: | :---: | :---: |
+| A-MEM (Version-aware) | 43.27 | 70.56 | 36.00 | 19.57X |
+| Mem0 (Version-aware) | 42.31 | 62.16 | 203.66 | 110.68X |
+| MemGPT (Version-aware) | 41.34 | 66.33 | 70.53 | 38.33X |
+| MemoryOS (Version-aware) | 39.42 | 112.78 | 566.26 | 307.75X |
+| **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
+
+
 1. 强调bench是核心贡献 -》 分析出过去方法在memory存储和召回上的不足，所以找到了方法
 2. 强调比较是公平的， 我们完全follow他们原始的论文里面的setting。并且在Appendix里面Table 4也展示了，即使他们能用stepwise snapshot之后，他们引来的额外的成本是巨大的。
 
@@ -97,13 +155,20 @@ RecoverMem prevent valid progress from failed explorations by anchoring the task
 
 **W5:** It is tailored to SWE tasks and evaluated only on the authors' own benchmark, not on existing memory benchmarks.
 
-**A5:**  强调bench是核心贡献 -> 现有的memory bench把这个问题给忽略， 我们是第一个系统性地研究这个问题 -》 其他的benchmark无法研究这个问题
+**A5:**  Thank you for the comment. **Existing memory benchmarks evaluate how retained knowledge benefits later tasks, and they define neither an interruption nor an environment restore step, so they cannot measure task recovery, which is why we build RecoverMemBench instead of reusing them.** We choose SWE-bench because Git lets us restore the environment to any earlier step, which task rollback requires, whereas in domains with irreversible or costly actions such a controlled rollback is hard to construct. We discuss that in our Limitation section (Appendix D), while the two failure modes we identify (semantic retrieval among similar entries and overwrite updates) stem from memory design rather than from coding. Extending RecoverMemBench to other domains with restorable environments is the main direction of our future work.
+
+
+
+强调bench是核心贡献 -> 现有的memory bench把这个问题给忽略， 我们是第一个系统性地研究这个问题 -》 其他的benchmark无法研究这个问题
 
 ---
 
 **W6:** The failure analysis is weakly supported: the "full memory bank" test uses the evaluation question as the retrieval query, and the questions match RecoverMem's record fields. The link between answer correctness and recovery success is not shown.
 
 **A6:**
+
+
+
 强调这里面的evaluation question它是关于任务被打断时候environment里面的状态的，而不是整个task query。这些question完全是用我们恢复所需要的信息来生成的。所以它如果方法能够把这些信息给召回的话，它就能够支持task recovery。
 
 我们在Appendices里面提供了几个生成的question的examples，可以看出question完全是task resumption需要的信息

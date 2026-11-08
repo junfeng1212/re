@@ -1,23 +1,42 @@
 ## Reviewer idAb [Weak accept]
 
+Thanks for your thoughtful comments on our work. We hope the following replies could address your concerns.
+
 **W1:** The evaluation is narrow relative to the deployment claims. The 416 cases derive from only 104 independent tasks, with original trajectories averaging approximately 13.89 steps. The evaluation primarily uses one executor model, injected rollback failures, and a known recovery step.
 
-**A1:** We appreciate your thoughtful comments on our work. We hope the following responses address your concerns.
+**A1:** Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
 
-1. 强调贡献： 我们提出一个benchmark来评测了一个过去bench都忽略的一个问题： task recovery abilities
+**RecoverMemBench provides sufficient dataset for evaluation while aligning with the scale of established agent benchmarks.**
+Our benchmark 
+
+**Our settings can ensure a strictly controlled evaluation that isolates recovery capabilities from confounding factors.** To rigourously evaluate task recovery ability of current methods, we build our dataset with solvable samples under uninterrupted tasks with specific agent framework. That settings can prevent other factors (e.g., base model abilities, agent framework design, error types) affect the evaluations of task recovery.
+
+**Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline for evaluating agent memory.** Since our work firstly studies the task recovery settings systematically, our work not provides off-shelf dataset for evaluation but also the rigorous data construction pipeline for evaluating task recovery capabilties of current agent memory.
+
+
 2. 强调我们的这个样本量已经足够，其他的方法也是这个数量。 此外，评估成本是很大的， 构建这个数据集我们就花了1800usd，所以评估起来的成本也很大。
 3.   使用这些setting是为了提供一个严谨controllable的评测 -》隔离base model的能力，failures噪声对评测结果的影响，让我们的分析更reliable -》以GPT 4o所有成功样本的base数据为例，使用成功样本作为base数据，能够隔离base模型的强弱对最终评测的影响。
 4.  **核心不仅仅在于数据，同时也有构造数据的pipeline。** 强调我们的工作不仅仅提供了一个可以直接评估的benchmark，也提出了一个严谨的数据构造pipeline以评估Agent Memory在task recovery ability上面能力。
+5.   强调贡献： 我们提出一个benchmark来评测了一个过去bench都忽略的一个问题： task recovery abilities
 
 -------
 
 **W2:** The comparison with version-aware baselines materially qualifies the method advantage.
 
-**A2:** Thanks for your insightful views for our work. 
+**A2:** We thank the reviewer for this insightful comment regarding the version aware baselines in Appendix C.1. We clarify how these results support our core contributions and highlight the practical advantages of our method below: 
 
-强调我们的贡献， 第一个benchmark提出来研究这个问题的 -》 基于benchmark分析出过去方法在task recovery上的不足-》基于分析我们提出一个直接的方法，RecoverMem
+**RecoverMemBench is the first work to systematically investigate the task recovery challenge and diagnose the fundamental bottlenecks of existing memory systems.** Prior agent memory benchmarks overlook interrupted task recovery, which is a critical capability for real world deployment. Our primary contribution lies in establishing this evaluation paradigm and uncovering two root causes of recovery failure: unreliable semantic retrieval and state mismatch caused by overwrite updates. In fact, we designed the version-aware baseline experiment in Appendix C.1 specifically to validate this diagnostic finding. The performance gains achieved by equipping baselines with stepwise snapshots directly prove our findings that synchronizing memory state with the restored environment is essential for task rollback.
 
-**Version-aware baselines incur substantial costs, overpassing our method about 30 times at least.** version-aware baselines他们需要几十倍额外的存储空间【Appendix Table 4】。这使得他们的方法unpractial。
+**Version-aware baselines incur prohibitive storage costs that exceed RecoverMem by 19.57 to 307.75 times, rendering them impractical for real-world scenarios.** Since existing memory systems are not natively designed for state rollback, preserving historical states requires duplicating their full memory banks at every step. As shown in Table 4 (summarized below), maintaining recovery effectiveness via version preservation requires between 36.00 MiB and 566.26 MiB of storage. In contrast, RecoverMem achieves the highest recovery rate (43.27%) using only 1.84 MiB by recording compact structured state updates at each step. Furthermore, naive snapshot preservation fails to resolve the semantic retrieval bottleneck. We believe that exposing this steep trade-off between state consistency and storage efficiency will motivate future research on lightweight, recovery aware agent memory.
+
+
+| Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
+| :--- | :---: | :---: | :---: | :---: |
+| A-MEM (Version-aware) | 43.27 | 70.56 | 36.00 | 19.57$\times$ |
+| Mem0 (Version-aware) | 42.31 | 62.16 | 203.66 | 110.68$\times$ |
+| MemGPT (Version-aware) | 41.34 | 66.33 | 70.53 | 38.33$\times$ |
+| MemoryOS (Version-aware) | 39.42 | 112.78 | 566.26 | 307.75$\times$ |
+| **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00$\times$** |
 
 -------
 

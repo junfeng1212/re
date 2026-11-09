@@ -91,7 +91,12 @@ Q4: If an incorrect high-confidence belief prevents the agent from exploring alt
 
 **W2:** The ALFWorld success rates contain values that cannot be obtained from the stated number of episodes. SR is the number of solved episodes divided by the total number and times 100. Appendix C.1 states that the Seen set has 140 episodes and the Unseen set has 134. So the number of solved episodes equals 1.4×SR on Seen and 1.34×SR on Unseen, and this must be an integer. In Table 5, w/o Add has a Seen SR of 19.87. It gives 19.87×1.4=27.82 solved episodes. However, 27 solved episodes give 19.29% and 28 give 20.00%, so 19.87% is not possible.The same problem appears in 25.29, 42.32, 27.65 and 29.76 of Table 5, and in the 53.75 for Table 2. Moreover, B.3 reports only one seed 42, and the paper does not mention averaging over multiple runs. These values therefore cannot come from the reported setting. Furthermore, in Table 8, w/o decay and λ = 1.0 should be identical according to Eq. 9. However, the authors report different results.
 
-**A2:** Table2里面的 53.75属于是表格内容校准错误： 真实的数值是：72/134 * 100 = 53.73 ; 同时，我们也检查了 Table5实验的log，发现因为短暂的API fails 导致在评估时候样本出现错误，导致在计算成功率的时候未纳入总样本量： 25/84 * 100 = 29.76, 22/87* 100 = 25.29； 26/94 * 100 = 27.65； 31/156 * 100 = 0.1987； 
+**A2:** Table2里面的 53.75属于是表格内容校准错误： 真实的数值是：72/134 * 100 = 53.73 ; 同时，我们也检查了 Table5实验的log，发现因为短暂的API fails 导致在评估时候样本出现失败并且尝试重启3次后也无法成功，导致在计算成功率的时候未纳入总样本量： 25/84 * 100 = 29.76, 22/87* 100 = 25.29； 26/94 * 100 = 27.65；
+
+对于42.32，19.87， 对于部分的样本，重启成功，导致分别有21个样本跑了 1-3次 （w/o Merge on ALFWorld-Unseen） 和9个样本跑了 1-3次 （w/o Add on ALFWorld-Seen）  ，在计算运行总量的时候将这部分重复的run是纳入，从而导致分母超出134: 
+80/189 * 100 = 42.32，31/156 * 100 = 0.1987；
+
+感谢你指出这一点。 我们重新在这些setting下完整跑了一些实验
 
 对于w/o decay和 lamada = 1.0 是完全一样的；并且我们可以看到，他们的表现是十分接近的。
 

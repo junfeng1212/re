@@ -259,25 +259,26 @@ We believe that exposing these analysis in our work will motivate future researc
 **W3:** It is unclear how the gains depend on the underlying model.
 Task recovery is evaluated with GPT-4o as the executor and GPT-4o-mini for memory construction (Section 3). It therefore remains unclear how much additional value RecoverMem provides when the executor is stronger or differs in its ability to use long histories. Comparisons across capability levels and within-family model sizes would help establish whether the gains are robust or mainly specific to the current model configuration.
 
-**A3:**
+**A3:** 
 
 **Controlling for the executor model isolates memory system performance from base model capability.** In our benchmark, we fix the executor and exclusively collect tasks that it can successfully solve in an uninterrupted setting. Because the base model is already capable of solving every benchmark sample, this design eliminates confounding effects from intrinsic model capability, ensuring that the task recovery rate under resumption and rollback depends solely on the memory system design.
 
-Additionally, to futher address your concerns, we conduct the evaluation of our method RecoverMem with Qwen3.8-27B, Qwen3.8-Flash (125B), Qwen3.8-Max (2.4T). Specifically, we totally follow the data pipeline and evaluation protocol presented in our work (Section 2.3). With each model, we construct 104 samples for Task Resumption@50% and 104 samples for Task Rollback respectively.
+T futher address your concerns, we conduct the evaluation of our method RecoverMem with Qwen3.8-27B, Qwen3.8-Flash (125B). Specifically, we totally follow the data pipeline and evaluation protocol presented in our work (Section 2.3). With each model, we construct 104 samples for Task Resumption@50% and 104 samples for Task Rollback respectively. And GPT-4o-mini is still used for memory construction. We provide the results as follows:
 
-Base Model  Method  Task Resumption@50% Task Rollback 
-                     RR AS          RR AS
-Qwen3.8-27B  Mem0 51.92% 127.88%  19.23%  151.20%
-Qwen3.8-27B  A-Mem 55.76% 104.23% 26.92% 137.64%
-Qwen3.8-27B  RecoverMem  62.50%  91.75% 40.38% 93.97%
-Qwen3.8-Flash (125B) Mem0 58.65% 110.81% 22.12% 140.63%
-Qwen3.8-Flash (125B) A-MEM 61.54% 103.59% 29.81% 129.74%
-Qwen3.8-Flash (125B) RecoverMem 68.27% 70.18% 46.15% 82.65%
+| Base Model | Method | Task Resumption@50% RR | Task Resumption@50% AS | Task Rollback RR | Task Rollback AS |
+|---|---|---|---|---|---|
+| Qwen3.8-27B | Mem0 | 51.92% | 127.88% | 19.23% | 151.20% |
+| Qwen3.8-27B | A-Mem | 55.76% | 104.23% | 26.92% | 137.64% |
+| Qwen3.8-27B | RecoverMem | 62.50% | 91.75% | 40.38% | 93.97% |
+| Qwen3.8-Flash (125B) | Mem0 | 58.65% | 110.81% | 22.12% | 140.63% |
+| Qwen3.8-Flash (125B) | A-MEM | 61.54% | 103.59% | 29.81% | 129.74% |
+| Qwen3.8-Flash (125B) | RecoverMem | 68.27% | 70.18% | 46.15% | 82.65% |
 
-1. 强调为了保证一个严谨的评估。我们固定了base model和保证所有的样本都是Base model在 uninterrupted情况下可以解决的。
-2. 这样才能反应，在Task resumption和Task rollback的情况下， Memory system对于的Task recovery capability怎么样？不会受到base model能力的影响
+**RecoverMem achieves the highest RR and the lowest AS in every configuration.** Relative to A-MEM, the stronger of the two baselines, RecoverMem improves resumption RR by 6.74 and 6.73 pp and rollback RR by 13.46 and 16.34 pp for the 27B and 125B executors, respectively. It also lowers AS by 12.48 and 33.41 pp under resumption and by 43.67 and 47.09 pp under rollback.
 
-但是为了打消你的顾虑，我们还在用新的base model进行了实验【从sample里面挑一些qwen，不同size的模型，在uninterrupted情况下可以解决的跑】
+**The gains do not shrink as the executor becomes larger.** Moving from 27B to 125B raises RR for all methods, yet the margin of RecoverMem over A-MEM stays at about 6.7 pp under resumption and grows from 13.46 to 16.34 pp under rollback. Even with the larger executor, A-MEM recovers only 29.81% of tasks under task rollback, which suggests that keeping memory consistent with the restored environment is not resolved by executor capacity alone.
+
+Overall, our benchmark is the first to investigate task recovery in memory systems. Unlike prior benchmarks that focus on accumulating experience for future tasks, it requires the memory system to maintain explicit task state at the moment of interruption.
 
 -------
 

@@ -255,13 +255,25 @@ We believe that exposing these analysis in our work will motivate future researc
 | MemoryOS (Version-aware) | 39.42 | 112.78 | 566.26 | 307.75X |
 | **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
 
-1. 强调benchmark是核心的贡献，过去的方法忽视了这个, 基于我们benchmark的分析，我们才知道解决这个问题方案的。
-2. snapshot-adapted它引来的额外的成本是巨大的。这使得这些方法每一步都存储起来， 就变得unpractical
 
 **W3:** It is unclear how the gains depend on the underlying model.
 Task recovery is evaluated with GPT-4o as the executor and GPT-4o-mini for memory construction (Section 3). It therefore remains unclear how much additional value RecoverMem provides when the executor is stronger or differs in its ability to use long histories. Comparisons across capability levels and within-family model sizes would help establish whether the gains are robust or mainly specific to the current model configuration.
 
 **A3:**
+
+**Controlling for the executor model isolates memory system performance from base model capability.** In our benchmark, we fix the executor and exclusively collect tasks that it can successfully solve in an uninterrupted setting. Because the base model is already capable of solving every benchmark sample, this design eliminates confounding effects from intrinsic model capability, ensuring that the task recovery rate under resumption and rollback depends solely on the memory system design.
+
+Additionally, to futher address your concerns, we conduct the evaluation of our method RecoverMem with Qwen3.8-27B, Qwen3.8-Flash (125B), Qwen3.8-Max (2.4T). Specifically, we totally follow the data pipeline and evaluation protocol presented in our work (Section 2.3). With each model, we construct 104 samples for Task Resumption@50% and 104 samples for Task Rollback respectively.
+
+Base Model  Method  Task Resumption@50% Task Rollback 
+                     RR AS          RR AS
+Qwen3.8-27B  Mem0 51.92% 127.88%  19.23%  151.20%
+Qwen3.8-27B  A-Mem 55.76% 104.23% 26.92% 137.64%
+Qwen3.8-27B  RecoverMem  62.50%  91.75% 40.38% 93.97%
+Qwen3.8-Flash (125B) Mem0 58.65% 110.81% 22.12% 140.63%
+Qwen3.8-Flash (125B) A-MEM 61.54% 103.59% 29.81% 129.74%
+Qwen3.8-Flash (125B) RecoverMem 68.27% 70.18% 46.15% 82.65%
+
 1. 强调为了保证一个严谨的评估。我们固定了base model和保证所有的样本都是Base model在 uninterrupted情况下可以解决的。
 2. 这样才能反应，在Task resumption和Task rollback的情况下， Memory system对于的Task recovery capability怎么样？不会受到base model能力的影响
 

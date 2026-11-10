@@ -20,6 +20,11 @@
 
 Additionally, in Table 7 (provided below), Shuffling the belief scores of all candidates of each attribute reduces F1 from 40.51 to 29.72 on multi-hop questions and from 51.88 to 31.22 on temporal questions in LoCoMo benchmark. This experiments further show the effectiveness of belief scores in our work.
 
+| Method | Multi-hop | Temporal | Open-domain | Single-hop |
+| :--- | :---: | :---: | :---: | :---: |
+| Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 |
+| **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** |
+
 **BeliefMem corrects the contradictory memory over noisy observations.** In experiments of Figure 3, we select several attributes of which contradictory memory receive the highest belief score. Over 10 steps (5 valid observations and 5 correlated observations), BeliefMem can refine 60.80% of flawed memory into the correct memory (the correct memory outranks the contradictory) with only average 4.75 steps. In contrast, prior deterministic memory method only refine 33.30% of contradictory memory into right memory while using averge 9.45 steps.  These results show the robustness of belief score in BeliefMem due to its memory update over noisy observations.
 
 | Method | Correction Rate$up$ | Correction Steps$down$ |
@@ -60,7 +65,38 @@ Overall, our work firstly proposes the probabilistic paradigm of memory system, 
 
 **W2:** Insufficient analysis of noise from competing hypotheses. Preserving multiple candidate conclusions may introduce conflicting or misleading information during retrieval, potentially degrading downstream decisions. While the paper examines retrieval size, it does not systematically investigate how the number of conflicting candidates or their confidence distributions affect task performance. More targeted ablations are necessary.
 
-**A2:** 用appendix里面打乱prob的实验回答这个问题，顺便做一个不同数量的conflicting candidates的影响的实验
+**A2:** Thanks for your insightful comments on our work. We hope the following replies could address your concerns.
+
+**Shuffling probability distirbution or removing probability notably degrade the performance of BeliefMem.** In Table 9, we conduct experiments where we shuffle the probability of each candidate give an attribute c. As shown in Table 9 (also provided below), shuffling probabilities results in notable performance degradation on LoCoMo benchmark, avergely degraing XXX. That experiments demonstrate that the reliable confidence distributions are the key in BeliefMem since they provide the corrent uncertinty in external environment. 
+
+**Probabilistic memory addresses conflicting or misleading information preserved in multiple candidate conclusions.** In ablation studies, we remove the all probabilities of all candidates of each attribute c (w/o belief-aware retrieval). As shown below, removing these probabilities only achieve the average performance of 28.50 / 19.02 on LoCoMo benchmark. However, when BeliefMem with these probabilities, it improves the average performance from 28.50 / 19.02 to 42.38 / 36.30 (About XX%). These results show that preserving multiple candidate conclusions can impact the decisions of agents due to conflicting information over there. Our BeliefMem can handle this challenge by ranking these conflicting information using probabilities, enabling agents to know which candidate conclusion is most reliable.
+
+| Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| w/o belief-aware retrieval | 27.12 / 18.98 | 25.67 / 15.43 | 15.89 / 10.12 | 45.31 / 31.55 | 28.50 / 19.02 |
+| Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 | 27.76 / 22.91 |
+| **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** | **42.38 / 36.30** |
+
+Additionally, **BeliefMem assigns the highest belief score to true conclusion.** In experiments of Figure 4(b), we track the the Top-1 rate, defined as the fraction of attributes whose true conclusion receives the highest score. As shown in Figure 4(b) (also provided below), with gradual updates, our method BeliefMem rises the Top-1 rate from 7.69% to 84.62%, which means that 84.62% of true conclusions receive the highest belief score among all candidates. In contrast, Mem0 and A-MEM only improve the Top-1 rate to 46.15% and 42.31%, respectively. These results show that BeliefMem calibrate probabilties reliably using Noisy-OR update over steps.
+
+| Step | BeliefMem | Mem0 | A-MEM |
+| --- | --- | --- | --- |
+| 1 | 7.69% | 7.69% | 7.69% |
+| 50 | 15.38% | 38.46% | 38.46% |
+| 100 | 23.08% | 42.31% | 38.46% |
+| 200 | 46.15% | 42.31% | 38.46% |
+| 250 | 46.15% | 57.69% | 53.85% |
+| 300 | 61.54% | 57.69% | 53.85% |
+| 400 | 65.38% | 50.00% | 46.15% |
+| 500 | 84.62% | 46.15% | 42.31% |
+
+**Increasing the number of conflicting candidates improve the performance of BeliefMem.** We further conduct the experiments with different number of conflicting candidates |H_sub(c)|
+
+|H_sub(c)|  ALF-Seen(SR / #Steps↓)  ALF-Unseen(SR / #Steps↓)
+2 
+4 (default setting)
+6
+
 
 ------
 
@@ -72,7 +108,9 @@ Overall, our work firstly proposes the probabilistic paradigm of memory system, 
 
 **W4:** Unclear recovery mechanism under incorrect high-confidence beliefs. When an initially incorrect belief already dominates an agent's actions, the agent may avoid behaviors that could generate contradictory evidence. BeliefMem primarily updates confidence after recseiving new observation, but does not explain how corrective evidence can be actively obtained in such situations.
 
-**A4:** Fig 4的实验回复这个问题
+**A4:** 解释一下 当incorrect high-confidence如何修复，给case study
+
+Fig 4的实验回复这个问题
 
 -----
 
@@ -138,7 +176,9 @@ Q4: If an incorrect high-confidence belief prevents the agent from exploring alt
 
 **Q3:** 3.Which reset value is used for a competing candidate in Merge? Section 3.3 states 1/|H_sub(c)|, while Appendix B.2 states 0.25.
 
-**A3:** 这个数是因为，我们在appendix里面指定出，默认的|H_sub(c)| = 4， 所以这个结果是0.25
+**A3:** Thanks for you pointing that. Since our the default setting of |H_sub(c)| is 4 mentioned in Appendix B.3 ([In addition, to reduce cost and latency in BeliefMem, we set the maximum number of candidate conclusions per attribute to 4 during retrieval.] ). Therefore, the Merge will reduce the competing conclusions' probabilities to 1 / 4 = 0.25.
+
+We will refine the statement of this part to make it more clear in Appendix B.2 and B.3.
 
 ------
 

@@ -175,7 +175,31 @@ We keep $p$ out of the ranking by design. $\alpha_t(c)$ ranks attributes by rele
 
 **W2:** The ALFWorld success rates contain values that cannot be obtained from the stated number of episodes. SR is the number of solved episodes divided by the total number and times 100. Appendix C.1 states that the Seen set has 140 episodes and the Unseen set has 134. So the number of solved episodes equals 1.4×SR on Seen and 1.34×SR on Unseen, and this must be an integer. In Table 5, w/o Add has a Seen SR of 19.87. It gives 19.87×1.4=27.82 solved episodes. However, 27 solved episodes give 19.29% and 28 give 20.00%, so 19.87% is not possible.The same problem appears in 25.29, 42.32, 27.65 and 29.76 of Table 5, and in the 53.75 for Table 2. Moreover, B.3 reports only one seed 42, and the paper does not mention averaging over multiple runs. These values therefore cannot come from the reported setting. Furthermore, in Table 8, w/o decay and λ = 1.0 should be identical according to Eq. 9. However, the authors report different results.
 
-**A2:** Table2里面的 53.75属于是表格内容校准错误： 真实的数值是：72/134 * 100 = 53.73 ; 同时，我们也检查了 Table5实验的log，发现因为短暂的API fails 导致在评估时候样本出现失败并且尝试重启3次后也无法成功，导致在计算成功率的时候未纳入总样本量： 25/84 * 100 = 29.76, 22/87* 100 = 25.29； 26/94 * 100 = 27.65；
+**A2:** We thank the reviewer for checking these values so carefully. We traced each value back to its evaluation log and found two separate causes.
+
+**Transcription error in Table 2.** The Unseen SR of BeliefMem with the full corpus is 72/134 × 100 = 53.73, not 53.75. That error comes from the manually filling the numbers in latex. We also check other all values, and they are accurate.
+
+**Incorrect denominators in Table 5 caused by API failures.** During the ablation runs, some samples are interrupted by API failures. Our evaluation script restarted each interrupted sample up to three times, but the success rate computation handled these samples incorrectly in two ways.
+
+First, samples that still failed after three restarts are dropped from the denominator instead of being counted as unsolved. This produced 26/94 × 100 = 27.65 on Seen and 25/84 × 100 = 29.76 on Unseen for w/o belief-based memory, and 22/87 × 100 = 25.29 on Unseen for w/o Add.
+
+Second, for samples that completed after restarting, every attempt was counted in the denominator, so the denominator exceeds the size of the split. This affected 21 Unseen samples of w/o Merge and 9 Seen samples of w/o Add, each restarted 1-3 times. The resulting values were 80/189 × 100 = 42.32 and 31/156 × 100 = 19.87, respectively.
+
+We check the logs of all other ALFWorld numbers in Tables 2, 4, 5, and 8. Each of them is computed over the full 140 Seen or 134 Unseen samples, with every sample counted exactly once.
+
+**Rerun of the affected settings.** we check the stability of API serive, and re-run the affected experiments. The updated results are shown below. We will update Table 3, Table 5, and Appendix D.2 accordingly.
+
+Method	Seen SR / #Steps	Unseen SR / #Steps	Avg. SR / #Steps
+w/o belief-based memory	[ ] / [ ]	[ ] / [ ]	[ ] / [ ]
+w/o Add	[ ] / [ ]	[ ] / [ ]	[ ] / [ ]
+w/o Merge	[ ] / [ ]	[ ] / [ ]	[ ] / [ ]
+BeliefMem (Ours)	58.57 / 29.77	61.19 / 29.34	59.88 / 29.56
+
+
+(4) λ = 1.0 versus w/o decay. We agree that these two settings are identical under Eq. 9, since λ^τ = 1 for every τ when λ = 1.0. The two rows in Table 8 come from two separate runs of the same configuration. Their difference amounts to 2 of 140 Seen samples and 4 of 134 Unseen samples. This difference reflects nondeterminism in LLM inference across runs, which remains even at temperature 0. Reporting them as two different settings was our mistake. In the revision, we will merge them into a single row and remove the discussion in Appendix D.4 that interprets them as different behaviors.
+
+
+Table2里面的 53.75属于是表格内容校准错误： 真实的数值是：72/134 * 100 = 53.73 ; 同时，我们也检查了 Table5实验的log，发现因为短暂的API fails 导致在评估时候样本出现失败并且尝试重启3次后也无法成功，导致在计算成功率的时候未纳入总样本量： 25/84 * 100 = 29.76, 22/87* 100 = 25.29； 26/94 * 100 = 27.65；
 
 对于42.32，19.87， 对于部分的样本，重启成功，导致分别有21个样本跑了 1-3次 （w/o Merge on ALFWorld-Unseen） 和9个样本跑了 1-3次 （w/o Add on ALFWorld-Seen）  ，在计算运行总量的时候将这部分重复的run是纳入，从而导致分母超出134: 
 80/189 * 100 = 42.32，31/156 * 100 = 0.1987；

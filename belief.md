@@ -142,7 +142,29 @@ Q4: If an incorrect high-confidence belief prevents the agent from exploring alt
 
 **W1:** The notation is inconsistent in several places. First, the formula above eq. 3 is written as a_t ∼ π(· | o_t, z_t), but z_t is never defined. Second, the letter M is used for two different things. M_t in Eq. 2 denotes the external memory, while M_c in H(c) = {h_1^(c), ..., h_{M_c}^(c)} denotes the number of hypotheses. Third, Eq. 3 updates the memory as Update(M_t, o_t, o_{t+1}) without a_t. However, the paragraph on self-reinforcing error says that the transition (o_t, a_t, o_{t+1}) is written back to memory via Eq. 3. Fourth, in the paragraph on belief update, the authors keep scores unnormalised so that the score of a supported h is not affected by the number of alternative candidates for the same c. However, in Merge, a competing candidate is reset to 1/|H_sub(c)|, which depends directly on the number. Moreover, the retrieval score α_t(c) in Eq. 9 depends only on semantic similarity and time decay but p is not used. So retrieval ranking is not belief-aware.
 
-**A1:**  1. a_t ∼ π(· | o_t, z_t)中的 z_t是typos 多写了，正确的应该是a_t ∼ π(· | o_t, m_t)
+**A1:** 
+**Undefined $z_t$ is a typo.** The policy should read $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2.
+
+**Overloaded $M$.** We agree that using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}_1, \dots, h^{(c)}_{|\mathcal{H}(c)|}\}$ and remove $M_c$. The same symbol also appears in the cost analysis of Appendix B.4, where it denotes the number of active candidates. We replace it there with $|\mathcal{H}_{\text{sub}}(c)|$.
+
+**The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3. Including $a_t$ is essential to our argument, because the self-reinforcing error arises precisely when $a_t$ determines which observation $o_{t+1}$ the agent receives.
+
+**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.** The reviewer is right that the reset value depends on the number of candidates, so our statement in Section 3.3 was too broad. The two operations play different roles.
+
+Support for a candidate $h$ accumulates through Noisy-OR without normalization. As a result, strong evidence for $h$ is not diluted when other candidates for the same $c$ appear. This is the property our statement in Section 3.3 was meant to describe.
+
+Noisy-OR, however, can only increase a score. Without an operation that lowers scores, competing candidates that keep receiving support would approach the cap of 0.99 together and become indistinguishable. The reset provides this operation. When an observation supports a competing candidate, the existing candidate returns to $1/|\mathcal{H}_{\text{sub}}(c)|$, the uniform level over the current candidates. This marks the candidate as contested without discarding it.
+
+We will restrict the statement in Section 3.3 to the support update and describe the role of the reset explicitly.
+
+**Belief-aware retrieval.** In BeliefMem, retrieval is belief-aware in what it returns: for each of the top-K attributes, Eq. 10 returns all candidates together with their scores, rather than a single conclusion.
+
+The ablation “w/o belief-aware retrieval” (Appendix D.2) follows this definition. It keeps the ranking unchanged and only removes the scores from the returned candidates. This change alone reduces the average F1 on LoCoMo from 42.38 to 28.50.
+
+We keep $p$ out of the ranking by design. $\alpha_t(c)$ ranks attributes by relevance, whereas $p$ is defined over the candidates within an attribute. Weighting the ranking by the scores, for example by the highest score of each attribute, would favor attributes whose conclusions are already confident. It would push uncertain attributes out of the Top-K, although these are exactly the attributes whose uncertainty the agent needs to see. We will state this definition explicitly in Section 3.3 and Figure 2.
+
+
+1. a_t ∼ π(· | o_t, z_t)中的 z_t是typos 多写了，正确的应该是a_t ∼ π(· | o_t, m_t)
 2. H(c) = {h_1^(c), ..., h_{M_c}^(c)} 是不严谨的地方，正确的应该改为 H(c) = {h_1^(c), ..., h_{｜H(c)｜}^(c)}
 3. the transition (o_t, a_t, o_{t+1}) 应该使用 (o_t, o_{t+1})
 4. Update(M_t, o_t, o_{t+1}) 正确 应该改成 Update(M_t, a_t, o_{t+1})

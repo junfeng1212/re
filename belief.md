@@ -143,26 +143,30 @@ Q4: If an incorrect high-confidence belief prevents the agent from exploring alt
 **W1:** The notation is inconsistent in several places. First, the formula above eq. 3 is written as a_t ∼ π(· | o_t, z_t), but z_t is never defined. Second, the letter M is used for two different things. M_t in Eq. 2 denotes the external memory, while M_c in H(c) = {h_1^(c), ..., h_{M_c}^(c)} denotes the number of hypotheses. Third, Eq. 3 updates the memory as Update(M_t, o_t, o_{t+1}) without a_t. However, the paragraph on self-reinforcing error says that the transition (o_t, a_t, o_{t+1}) is written back to memory via Eq. 3. Fourth, in the paragraph on belief update, the authors keep scores unnormalised so that the score of a supported h is not affected by the number of alternative candidates for the same c. However, in Merge, a competing candidate is reset to 1/|H_sub(c)|, which depends directly on the number. Moreover, the retrieval score α_t(c) in Eq. 9 depends only on semantic similarity and time decay but p is not used. So retrieval ranking is not belief-aware.
 
 **A1:** 
-**Undefined $z_t$ is a typo.** The policy should read $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2.
+**Undefined $z_t$ is a typo.** Since we state that agent should read $o_t$ and $m_t$ to select action $a_t$ in line 199 ("The agent selects $a_t$ conditioned on $o_t$ and $m_t$"), namely $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2. We revise this typo in the line 170 of revised version.
 
-**Overloaded $M$.** We agree that using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}_1, \dots, h^{(c)}_{|\mathcal{H}(c)|}\}$ and remove $M_c$. The same symbol also appears in the cost analysis of Appendix B.4, where it denotes the number of active candidates. We replace it there with $|\mathcal{H}_{\text{sub}}(c)|$.
+**Overloaded $M$.** Using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}_1, \dots, h^{(c)}_{|\mathcal{H}(c)|}\}$ and remove $M_c$, making our writing more clear. We revise it in the line 183 of revised version.
 
-**The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3. Including $a_t$ is essential to our argument, because the self-reinforcing error arises precisely when $a_t$ determines which observation $o_{t+1}$ the agent receives.
+**The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3 in line 200 of revised version.
 
-**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.** The reviewer is right that the reset value depends on the number of candidates, so our statement in Section 3.3 was too broad. The two operations play different roles.
+**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.**  Sorry for your misunderstanding. Our statement in Section 3.3 was too broad. The two operations play different roles:
 
-Support for a candidate $h$ accumulates through Noisy-OR without normalization. As a result, strong evidence for $h$ is not diluted when other candidates for the same $c$ appear. This is the property our statement in Section 3.3 was meant to describe.
+Support for a candidate $h$ accumulates through Noisy-OR without normalization. As a result, strong evidence for $h$ is not diluted when other candidates for the same $c$ appear. This is the property our statement in Section 3.3 is meant to describe.
 
-Noisy-OR, however, can only increase a score. Without an operation that lowers scores, competing candidates that keep receiving support would approach the cap of 0.99 together and become indistinguishable. The reset provides this operation. When an observation supports a competing candidate, the existing candidate returns to $1/|\mathcal{H}_{\text{sub}}(c)|$, the uniform level over the current candidates. This marks the candidate as contested without discarding it.
+Noisy-OR, however, can only increase a score. Without an operation that lowers scores, competing candidates that keep receiving support would approach the cap of 0.99 together and become indistinguishable. The reset of Merge provides this operation. When an observation supports a competing candidate, the existing candidate returns to $1/|\mathcal{H}_{\text{sub}}(c)|$, the uniform level over the current candidates. This marks the candidate as contested without discarding it.
 
-We will restrict the statement in Section 3.3 to the support update and describe the role of the reset explicitly.
+We revise the statement in Section 3.3 to the support update and describe the role of the reset explicitly.
 
-**Belief-aware retrieval.** In BeliefMem, retrieval is belief-aware in what it returns: for each of the top-K attributes, Eq. 10 returns all candidates together with their scores, rather than a single conclusion.
+**Belief-aware retrieval.** In BeliefMem, retrieval is belief-aware in what it returns: for each of the Top-K attributes, Eq. 10 returns all candidates together with their probabilities, rather than a single conclusion.
 
-The ablation “w/o belief-aware retrieval” (Appendix D.2) follows this definition. It keeps the ranking unchanged and only removes the scores from the returned candidates. This change alone reduces the average F1 on LoCoMo from 42.38 to 28.50.
+The ablation “w/o belief-aware retrieval” follows this definition. It keeps the ranking unchanged and only removes the probabilities from the returned candidates. This change alone reduces the average F1 on LoCoMo from 42.38 to 28.50.
 
-We keep $p$ out of the ranking by design. $\alpha_t(c)$ ranks attributes by relevance, whereas $p$ is defined over the candidates within an attribute. Weighting the ranking by the scores, for example by the highest score of each attribute, would favor attributes whose conclusions are already confident. It would push uncertain attributes out of the Top-K, although these are exactly the attributes whose uncertainty the agent needs to see. We will state this definition explicitly in Section 3.3 and Figure 2.
+**We keep $p$ out of the ranking by design.** When we directly use $p$ as a retrieval score to decide which candidates of each attribute $c$, our method will be degraded to deterministic paradigm. Because that means that the candidate with highest probability would be most likely retrieved, and then the agent will obtain the most confident conclusion of each attribute, namely deterministic paradigm.  With our design which provides all candidate with their probabilities, agents can know the uncertainty in external environment. For example, when the conclusion with the highest probability is wrong, agents can know alternative he can visit. Additionally, our experiments shown below, with shuffling the probability distribution of all candidates of each attribute, observe that  wrong probability distribution can notably decrease the performance of BeliefMem, from 42.38 / 36.30 to 27.76 / 22.91, validating the effectiveness of our design.
 
+| Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 | 27.76 / 22.91 |
+| **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** | **42.38 / 36.30** |
 
 1. a_t ∼ π(· | o_t, z_t)中的 z_t是typos 多写了，正确的应该是a_t ∼ π(· | o_t, m_t)
 2. H(c) = {h_1^(c), ..., h_{M_c}^(c)} 是不严谨的地方，正确的应该改为 H(c) = {h_1^(c), ..., h_{｜H(c)｜}^(c)}
@@ -175,38 +179,33 @@ We keep $p$ out of the ranking by design. $\alpha_t(c)$ ranks attributes by rele
 
 **W2:** The ALFWorld success rates contain values that cannot be obtained from the stated number of episodes. SR is the number of solved episodes divided by the total number and times 100. Appendix C.1 states that the Seen set has 140 episodes and the Unseen set has 134. So the number of solved episodes equals 1.4×SR on Seen and 1.34×SR on Unseen, and this must be an integer. In Table 5, w/o Add has a Seen SR of 19.87. It gives 19.87×1.4=27.82 solved episodes. However, 27 solved episodes give 19.29% and 28 give 20.00%, so 19.87% is not possible.The same problem appears in 25.29, 42.32, 27.65 and 29.76 of Table 5, and in the 53.75 for Table 2. Moreover, B.3 reports only one seed 42, and the paper does not mention averaging over multiple runs. These values therefore cannot come from the reported setting. Furthermore, in Table 8, w/o decay and λ = 1.0 should be identical according to Eq. 9. However, the authors report different results.
 
-**A2:** We thank the reviewer for checking these values so carefully. We traced each value back to its evaluation log and found two separate causes.
+**A2:** We thank the reviewer for checking these values so carefully. We check each value back to its evaluation log and found two causes.
 
-**Transcription error in Table 2.** The Unseen SR of BeliefMem with the full corpus is 72/134 × 100 = 53.73, not 53.75. That error comes from the manually filling the numbers in latex. We also check other all values, and they are accurate.
+**Filling error in Table 2.** The Unseen SR of BeliefMem with the full corpus is 72/134 × 100 = 53.73, not 53.75. That error comes from the manually filling the numbers in latex.
 
-**Incorrect denominators in Table 5 caused by API failures.** During the ablation runs, some samples are interrupted by API failures. Our evaluation script restarted each interrupted sample up to three times, but the success rate computation handled these samples incorrectly in two ways.
+**Incorrect metrics computations caused by API failures.** During the ablation runs of Table 5, some samples are interrupted by Qwen3-Next-80B-A3B-Instruct API failures. In this case, our evaluation would automatically restart each interrupted sample up to 3 times, but the success rate (SR) computation handled these samples incorrectly in two ways.
 
-First, samples that still failed after three restarts are dropped from the denominator instead of being counted as unsolved. This produced 26/94 × 100 = 27.65 on Seen and 25/84 × 100 = 29.76 on Unseen for w/o belief-based memory, and 22/87 × 100 = 25.29 on Unseen for w/o Add.
+First, samples that still failed after 3 restarts are judged as invalid evaluation sample since they don't has evaluation results. Therefore, when calculating the SR, they aren't considered. That produces 26/94 × 100 = 27.65 on Seen and 25/84 × 100 = 29.76 on Unseen for w/o belief-based memory, and 22/87 × 100 = 25.29 on Unseen for w/o Add.
 
-Second, for samples that completed after restarting, every attempt was counted in the denominator, so the denominator exceeds the size of the split. This affected 21 Unseen samples of w/o Merge and 9 Seen samples of w/o Add, each restarted 1-3 times. The resulting values were 80/189 × 100 = 42.32 and 31/156 × 100 = 19.87, respectively.
+Second, for samples that completed after several restarting, every attempt of restarted samples is counted in denominator, so the denominator exceeds the size of the split. This affected 21 Unseen samples of w/o Merge and 9 Seen samples of w/o Add, each restarted 1-3 times. The resulting values were 80/189 × 100 = 42.32 and 31/156 × 100 = 19.87, respectively.
 
-We check the logs of all other ALFWorld numbers in Tables 2, 4, 5, and 8. Each of them is computed over the full 140 Seen or 134 Unseen samples, with every sample counted exactly once.
+We also check the numbers of all other experiments in our work, and find that they are accurate. So, this metric computation errors only occur when running ablation study experiments due to unstable API rather than intentional things. We repsect the reproducability and honsty in research community. 
 
-**Rerun of the affected settings.** we check the stability of API serive, and re-run the affected experiments. The updated results are shown below. We will update Table 3, Table 5, and Appendix D.2 accordingly.
+**Rerun of the affected settings.** we check the stability of API serive, and re-run the impacted experiments. The updated results are shown below. We will update Table 3, Table 5, and Appendix D.2 accordingly.
 
-Method	Seen SR / #Steps	Unseen SR / #Steps	Avg. SR / #Steps
-w/o belief-based memory	[ ] / [ ]	[ ] / [ ]	[ ] / [ ]
-w/o Add	[ ] / [ ]	[ ] / [ ]	[ ] / [ ]
-w/o Merge	[ ] / [ ]	[ ] / [ ]	[ ] / [ ]
-BeliefMem (Ours)	58.57 / 29.77	61.19 / 29.34	59.88 / 29.56
+Method,Seen SR / #Steps,Unseen SR / #Steps,Avg. SR / #Steps
+w/o belief-based memory,30.71% (43/140) / 37.84,24.63% (33/134) / 39.72,27.67% / 38.78
+w/o Add,22.14% (31/140) / 39.19,29.10% (39/134) / 41.48,25.62% / 40.34
+w/o Merge,39.29% (55/140) / 32.38,53.73% (72/134) / 32.52,46.51% / 32.45
+BeliefMem (Ours),58.57% (82/140) / 29.77,61.19% (82/134) / 29.34,59.88% / 29.56
+
+As shown above, after removing belief-based memory, the average SR of BeliefMem decreases from  59.88% to 27.67%, showing the superiority of probabilistic memory paradigm of BeliefMem compared with deterministic paradigm.
+Additionally, w/o Add and w/o Merge degrade the performance of our method to 25.62% and 46.51%, respectively, showing consistent trend with analysis in our work. 
+
+Overall, our work firstly propose a probabilisitic memory paradigm in agent memory to address the self-reinforcing error, which can preserve the uncertainty of external environment, making the memory system more reliable and robust.
 
 
-(4) λ = 1.0 versus w/o decay. We agree that these two settings are identical under Eq. 9, since λ^τ = 1 for every τ when λ = 1.0. The two rows in Table 8 come from two separate runs of the same configuration. Their difference amounts to 2 of 140 Seen samples and 4 of 134 Unseen samples. This difference reflects nondeterminism in LLM inference across runs, which remains even at temperature 0. Reporting them as two different settings was our mistake. In the revision, we will merge them into a single row and remove the discussion in Appendix D.4 that interprets them as different behaviors.
-
-
-Table2里面的 53.75属于是表格内容校准错误： 真实的数值是：72/134 * 100 = 53.73 ; 同时，我们也检查了 Table5实验的log，发现因为短暂的API fails 导致在评估时候样本出现失败并且尝试重启3次后也无法成功，导致在计算成功率的时候未纳入总样本量： 25/84 * 100 = 29.76, 22/87* 100 = 25.29； 26/94 * 100 = 27.65；
-
-对于42.32，19.87， 对于部分的样本，重启成功，导致分别有21个样本跑了 1-3次 （w/o Merge on ALFWorld-Unseen） 和9个样本跑了 1-3次 （w/o Add on ALFWorld-Seen）  ，在计算运行总量的时候将这部分重复的run是纳入，从而导致分母超出134: 
-80/189 * 100 = 42.32，31/156 * 100 = 0.1987；
-
-感谢你指出这一点。 我们重新在这些setting下完整跑了一些实验
-
-对于w/o decay和 lamada = 1.0 是完全一样的；并且我们可以看到，他们的表现是十分接近的。
+**λ = 1.0 versus w/o decay.** These two settings are identical under Eq. 9, since λ^τ = 1 for every τ when λ = 1.0. The two rows in Table 8 come from two separate runs of the same configuration. Their difference ( 2 of 140 Seen samples and 4 of 134 Unseen samples) comes from LLM API inference, which remains even at temperature 0. In the revision, we will merge them into a single row and revise the discussion in Appendix D.4.
 
 -----
 
@@ -230,12 +229,17 @@ We will refine the statement of this part to make it more clear in Appendix B.2 
 
 **Q4:** Since the retrieval score in Eq. 9 does not use the candidate scores p, does the “w/o belief-aware retrieval” ablation only remove the scores from the retrieved text given to the agent?
 
-**A4**: 是的， 在召回之后，会retrieved memory会给出每一种可能的conclusions，但是不提供prob， 这使得agent无法measure被扣的可能性。 同时我们也做了打乱prob的实验，可以看到agent可以感知到这个一份probability的表现的影响
+**A4**: Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from
 
-| Method | Multi-hop | Temporal | Open-domain | Single-hop |
-| --- | --- | --- | --- | --- |
-| Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 |
-| **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** |
+
+是的， 在召回之后，会retrieved memory会给出每一种可能的conclusions，但是不提供prob， 这使得agent无法measure被扣的可能性。 同时我们也做了打乱prob的实验，可以看到agent可以感知到这个一份probability的表现的影响
+
+| Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| w/o belief-aware retrieval | 27.12 / 18.98 | 25.67 / 15.43 | 15.89 / 10.12 | 45.31 / 31.55 | 28.50 / 19.02 |
+| Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 | 27.76 / 22.91 |
+| **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** | **42.38 / 36.30** |
+
 
 --------
 

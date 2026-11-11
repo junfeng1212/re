@@ -1,6 +1,6 @@
 ## Reviewer Wh7d [2: Weak rejection]
 -----
-**W1&Q1:** Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. & Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
+**W1&Q1:** Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
 
 **A1:**  We thank the reviewer for this thoughtful comment. 
 
@@ -38,20 +38,11 @@ Overall, our work firstly proposes the probabilistic paradigm of memory system, 
 
 -----
 
-**W2&Q2:** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. & Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
+**W2&Q2:** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
 **A2:** ‼️[跑一个额外的benchmark实验]
 
-----
-
-**Q1:** Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
-同A1
-
----
-
-**Q2:** Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
-
-同A2
+-----
 
 ------
 
@@ -114,12 +105,12 @@ Additionally, **BeliefMem assigns the highest belief score to true conclusion.**
 | 400 | 65.38% | 50.00% | 46.15% |
 | 500 | 84.62% | 46.15% | 42.31% |
 
-**Increasing the number of conflicting candidates improve the performance of BeliefMem.** We further conduct the experiments with different number of conflicting candidates |H_sub(c)|
+**Effect of Candidate Pool Size $\vert{}\mathcal{H}_{sub}(c)\vert{}$.** We evaluate BeliefMem's performance across different numbers of conflicting candidates $\vert{}\mathcal{H}_{sub}(c)\vert{} \in \{2, 4, 6\}$ On ALFWorld with 50% memory corpus. The results reveal a clear trade-off between task difficulty and generalization. While a larger candidate pool improves the SR on ALF-Seen (peaking at $60.71\%$ with $\vert{}\mathcal{H}_{sub}(c)\vert{}=6$), it degrade generalization on ALF-Unseen beyond $\vert{}\mathcal{H}_{sub}(c)\vert{}=4$, where the SR drops from $61.19\%$ to $58.21\%$. Moreover, scaling to $\vert{}\mathcal{H}_{sub}(c)\vert{}=6$ increases execution steps across both splits (averaging $30.56$ steps). Setting $\vert{}\mathcal{H}_{sub}(c)\vert{}=4$ strikes the best trade-off, attaining the highest overall performance ($59.88\%$ AVG SR with $29.56$ steps).
 
-|H_sub(c)|  ALF-Seen(SR / #Steps↓)  ALF-Unseen(SR / #Steps↓)
-2 
-4 (default setting)
-6
+ $\vert{}\mathcal{H}_{sub}(c)\vert{}$, ALF-Seen (SR / #Steps↓),ALF-Unseen (SR / #Steps↓), AVG (SR / #Steps↓)
+2,50.71 / 28.13,51.49 / 31.13, 51.10 / 29.63
+4 (Ours),58.57 / 29.77,61.19 / 29.34, 59.88 / 29.56
+6,60.71 / 30.85,58.21 / 30.27, 59.46 / 30.56
 
 
 ------

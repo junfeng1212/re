@@ -4,7 +4,7 @@
 
 **A1:**  We thank the reviewer for this thoughtful comment. 
 
-**BeliefMem assigns the highest belief score to true conclusion.** In experiments of Figure 4(b), we track the the Top-1 rate, defined as the fraction of attributes whose true conclusion receives the highest score. As shown in Figure 4(b) (also provided below), with gradual updates, our method BeliefMem rises the Top-1 rate from 7.69% to 84.62%, which means that 84.62% of true conclusions receive the highest belief score among all candidates. In contrast, Mem0 and A-MEM only improve the Top-1 rate to 46.15% and 42.31%, respectively. These results show that BeliefMem calibrate the belief scores reliably using Noisy-OR update over steps
+**BeliefMem assigns the highest belief score to true conclusion, showing the reliability of belief score.** In experiments of Figure 4(b), we track the the Top-1 rate, defined as the fraction of attributes whose true conclusion receives the highest score. As shown in Figure 4(b) (also provided below), with gradual updates, our method BeliefMem rises the Top-1 rate from 7.69% to 84.62%, which means that 84.62% of true conclusions receive the highest belief score among all candidates. In contrast, Mem0 and A-MEM only improve the Top-1 rate to 46.15% and 42.31%, respectively. These results show that BeliefMem can calibrate the belief scores reliably using Noisy-OR update over steps.
 
 
 | Step | BeliefMem | Mem0 | A-MEM |
@@ -18,14 +18,14 @@
 | 400 | 65.38% | 50.00% | 46.15% |
 | 500 | 84.62% | 46.15% | 42.31% |
 
-Additionally, in Table 7 (provided below), Shuffling the belief scores of all candidates of each attribute reduces F1 from 40.51 to 29.72 on multi-hop questions and from 51.88 to 31.22 on temporal questions in LoCoMo benchmark. This experiments further show the effectiveness of belief scores in our work.
+Additionally, in Table 7 (provided below), Shuffling the belief scores of all candidates of each attribute reduces F1 from 40.51 to 29.72 on multi-hop questions and from 51.88 to 31.22 on temporal questions in LoCoMo benchmark. This experiments further show the effectiveness of belief scores in our work, which can reliably provide the uncertainty in external environement.
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop |
 | :--- | :---: | :---: | :---: | :---: |
 | Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 |
 | **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** |
 
-**BeliefMem corrects the contradictory memory over noisy observations.** In experiments of Figure 3, we select several attributes of which contradictory memory receive the highest belief score. Over 10 steps (5 valid observations and 5 correlated observations), BeliefMem can refine 60.80% of flawed memory into the correct memory (the correct memory outranks the contradictory) with only average 4.75 steps. In contrast, prior deterministic memory method only refine 33.30% of contradictory memory into right memory while using averge 9.45 steps.  These results show the robustness of belief score in BeliefMem due to its memory update over noisy observations.
+**BeliefMem corrects the contradictory memory over observations.** In experiments of Figure 3, we select several attributes of which contradictory memory receive the highest belief score. Over 10 steps (5 valid observations and 5 correlated observations), BeliefMem can refine 60.80% of contradictory memory into the correct memory (the correct memory outranks the contradictory) with only average 4.75 steps. In contrast, prior deterministic memory method only refine 33.30% of contradictory memory into right memory while using averge 9.45 steps.  These results show the robustness of belief score in BeliefMem due to its memory update over noisy observations.
 
 | Method | Correction Rate$up$ | Correction Steps$down$ |
 | --- | --- | --- |
@@ -40,7 +40,7 @@ Overall, our work firstly proposes the probabilistic paradigm of memory system, 
 
 **W2&Q2:** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. & Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
-**A2:** 跑一个额外的benchmark
+**A2:** ‼️[跑一个额外的benchmark实验]
 
 ----
 
@@ -124,10 +124,11 @@ A5: We thank the reviewer for the suggestion and provide the requested closed-lo
 
 **Metrics.** The evaluation reports the success rate (SR) and the fridge rate, defined as the fraction of tasks with at least one use of fridge 1. As a reference, each method also runs on the same tasks in the same order without the incorrect memory.
 
-Method	SR without incorrect memory (%)	SR with incorrect memory (%)	Fridge rate, tasks 1 to 20 (%)	Fridge rate, tasks 21 to 46 (%)
-Mem0	32.61	23.91	15.00	34.62
-A-MEM	28.26	19.57	10.00	19.23
-BeliefMem	71.74	67.39	100.00	100.00
+| Method | SR without incorrect memory (%) | SR with incorrect memory (%) | Fridge rate, tasks 1 to 20 (%) | Fridge rate, tasks 21 to 46 (%) |
+| --- | --- | --- | --- | --- |
+| Mem0 | 32.61 | 23.91 | 15.00 | 34.62 |
+| A-MEM | 28.26 | 19.57 | 10.00 | 19.23 |
+| BeliefMem | 71.74 | 67.39 | 100.00 | 100.00 |
 
 **Incorrect memory changes future actions.** Without the incorrect memory, all three methods use fridge 1 in all 46 tasks. With the incorrect memory, Mem0 and A-MEM use fridge 1 in only 15% and 10% of the first 20 tasks. Because every task requires fridge 1, the reduced fridge use directly lowers the SR. The SR of Mem0 drops from 32.61% to 23.91%, and the SR of A-MEM drops from 28.26% to 19.57%.
 

@@ -105,9 +105,9 @@ Additionally, **BeliefMem assigns the highest belief score to true conclusion.**
 | 400 | 65.38% | 50.00% | 46.15% |
 | 500 | 84.62% | 46.15% | 42.31% |
 
-**Effect of Candidate Pool Size $\vert{}\mathcal{H}_{sub}(c)\vert{}$.** We evaluate BeliefMem's performance across different numbers of conflicting candidates $\vert{}\mathcal{H}_{sub}(c)\vert{} \in \{2, 4, 6\}$ On ALFWorld with 50% memory corpus. The results reveal a clear trade-off between task difficulty and generalization. While a larger candidate pool improves the SR on ALF-Seen (peaking at $60.71\%$ with $\vert{}\mathcal{H}_{sub}(c)\vert{}=6$), it degrade generalization on ALF-Unseen beyond $\vert{}\mathcal{H}_{sub}(c)\vert{}=4$, where the SR drops from $61.19\%$ to $58.21\%$. Moreover, scaling to $\vert{}\mathcal{H}_{sub}(c)\vert{}=6$ increases execution steps across both splits (averaging $30.56$ steps). Setting $\vert{}\mathcal{H}_{sub}(c)\vert{}=4$ strikes the best trade-off, attaining the highest overall performance ($59.88\%$ AVG SR with $29.56$ steps).
+**Effect of Candidate Pool Size $\vert{}\mathcal{H}_{sub}(c)\vert{}$.** We evaluate BeliefMem's performance across different numbers of conflicting candidates $|\mathcal{H}_{sub}(c)| \in \{2, 4, 6\}$ On ALFWorld with 50% memory corpus. The results reveal a clear trade-off between task difficulty and generalization. While a larger candidate pool improves the SR on ALF-Seen (peaking at $60.71\%$ with $|\mathcal{H}_{sub}(c)|=6$), it degrade generalization on ALF-Unseen beyond $|\mathcal{H}_{sub}(c)|=4$, where the SR drops from $61.19\%$ to $58.21\%$. Moreover, scaling to $|\mathcal{H}_{sub}(c)|=6$ increases execution steps across both splits (averaging $30.56$ steps). Setting $|\mathcal{H}_{sub}(c)|=4$ strikes the best trade-off, attaining the highest overall performance ($59.88\%$ AVG SR with $29.56$ steps).
 
- $\vert{}\mathcal{H}_{sub}(c)\vert{}$, ALF-Seen (SR / #Steps↓),ALF-Unseen (SR / #Steps↓), AVG (SR / #Steps↓)
+ $|\mathcal{H}_{sub}(c)|$, ALF-Seen (SR / #Steps↓),ALF-Unseen (SR / #Steps↓), AVG (SR / #Steps↓)
 2,50.71 / 28.13,51.49 / 31.13, 51.10 / 29.63
 4 (Ours),58.57 / 29.77,61.19 / 29.34, 59.88 / 29.56
 6,60.71 / 30.85,58.21 / 30.27, 59.46 / 30.56

@@ -190,19 +190,18 @@ Q4: If an incorrect high-confidence belief prevents the agent from exploring alt
 
 ## Reviewer nZa7 [1: clear rejection]
 
-
 **W1:** The notation is inconsistent in several places. First, the formula above eq. 3 is written as a_t ∼ π(· | o_t, z_t), but z_t is never defined. Second, the letter M is used for two different things. M_t in Eq. 2 denotes the external memory, while M_c in H(c) = {h_1^(c), ..., h_{M_c}^(c)} denotes the number of hypotheses. Third, Eq. 3 updates the memory as Update(M_t, o_t, o_{t+1}) without a_t. However, the paragraph on self-reinforcing error says that the transition (o_t, a_t, o_{t+1}) is written back to memory via Eq. 3. Fourth, in the paragraph on belief update, the authors keep scores unnormalised so that the score of a supported h is not affected by the number of alternative candidates for the same c. However, in Merge, a competing candidate is reset to 1/|H_sub(c)|, which depends directly on the number. Moreover, the retrieval score α_t(c) in Eq. 9 depends only on semantic similarity and time decay but p is not used. So retrieval ranking is not belief-aware.
 
 **A1:** 
-**Undefined $z_t$ is a typo.** Since we state that agent should read $o_t$ and $m_t$ to select action $a_t$ in line 199 ("The agent selects $a_t$ conditioned on $o_t$ and $m_t$"), namely $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2. We revise this typo in the line 170 of revised version.
+**Undefined $z_t$ is a typo.** Since we mention that agent should read $o_t$ and $m_t$ to select action $a_t$ in line 199 ("The agent selects $a_t$ conditioned on $o_t$ and $m_t$"), namely $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2. We revise this typo in the line 170 of revised version.
 
-**Overloaded $M$.** Using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}_1, \dots, h^{(c)}_{|\mathcal{H}(c)|}\}$ and remove $M_c$, making our writing more clear. We revise it in the line 183 of revised version.
+**Overloaded $M$.** Using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}\_1, \dots, h^{(c)}\_{|\mathcal{H}(c)|}\}$ and remove $M_c$, making our writing more clear. We revise it in the line 183 of revised version.
 
 **The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3 in line 200 of revised version.
 
-**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.**  Sorry for your misunderstanding. Our statement in Section 3.3 was too broad. The two operations play different roles:
+[‼️]**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.**  We apologize for the confusion caused by our phrasing in Section 3.3. To clarify, the two operations actually serve distinct roles:
 
-Support for a candidate $h$ accumulates through Noisy-OR without normalization. As a result, strong evidence for $h$ is not diluted when other candidates for the same $c$ appear. This is the property our statement in Section 3.3 is meant to describe.
+1. Support for a candidate $h$ accumulates through Noisy-OR without normalization. As a result, strong evidence for $h$ is not diluted when other candidates for the same $c$ appear. This is the property our statement in Section 3.3 is meant to describe.
 
 Noisy-OR, however, can only increase a score. Without an operation that lowers scores, competing candidates that keep receiving support would approach the cap of 0.99 together and become indistinguishable. The reset of Merge provides this operation. When an observation supports a competing candidate, the existing candidate returns to $1/|\mathcal{H}_{\text{sub}}(c)|$, the uniform level over the current candidates. This marks the candidate as contested without discarding it.
 
@@ -212,19 +211,12 @@ We revise the statement in Section 3.3 to the support update and describe the ro
 
 The ablation “w/o belief-aware retrieval” follows this definition. It keeps the ranking unchanged and only removes the probabilities from the returned candidates. This change alone reduces the average F1 on LoCoMo from 42.38 to 28.50.
 
-**We keep $p$ out of the ranking by design.** When we directly use $p$ as a retrieval score to decide which candidates of each attribute $c$, our method will be degraded to deterministic paradigm. Because that means that the candidate with highest probability would be most likely retrieved, and then the agent will obtain the most confident conclusion of each attribute, namely deterministic paradigm.  With our design which provides all candidate with their probabilities, agents can know the uncertainty in external environment. For example, when the conclusion with the highest probability is wrong, agents can know alternative he can visit. Additionally, our experiments shown below, with shuffling the probability distribution of all candidates of each attribute, observe that  wrong probability distribution can notably decrease the performance of BeliefMem, from 42.38 / 36.30 to 27.76 / 22.91, validating the effectiveness of our design.
+**We keep $p$ out of the ranking by design.** When we directly use $p$ as a retrieval score to decide which candidates of each attribute $c$, our method will be degraded to deterministic paradigm. Because that means that the candidate with highest probability would be most likely retrieved, and then the agent will obtain the most confident conclusion of each attribute, namely deterministic paradigm.  With our design which provides all candidate with their probabilities, agents can know the uncertainty in external environment. For example, when the conclusion with the highest probability is wrong, agents can know alternative he can visit. Additionally, our experiments shown below, with shuffling the probability distribution of all candidates of each attribute, observe that wrong probability distribution can notably decrease the performance of BeliefMem, from 42.38 / 36.30 to 27.76 / 22.91, validating the effectiveness of our design.
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 | 27.76 / 22.91 |
 | **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** | **42.38 / 36.30** |
-
-1. a_t ∼ π(· | o_t, z_t)中的 z_t是typos 多写了，正确的应该是a_t ∼ π(· | o_t, m_t)
-2. H(c) = {h_1^(c), ..., h_{M_c}^(c)} 是不严谨的地方，正确的应该改为 H(c) = {h_1^(c), ..., h_{｜H(c)｜}^(c)}
-3. the transition (o_t, a_t, o_{t+1}) 应该使用 (o_t, o_{t+1})
-4. Update(M_t, o_t, o_{t+1}) 正确 应该改成 Update(M_t, a_t, o_{t+1})
-5.  BeliefMem keeps per-candidate probability {p^(c)_t(h)} instead of a normalized joint posterior over H_sub(c) 意外为 我们维护的belief representation 不是一个normalized的distribution， 即所有的prob的和为1； in Merge， 我们是为了保证已经存在的candidate的概率被更新之后，其他competitive conlusions的概率能够得到限制，从而保证每个candidate的概率不会无限制地被增加
-6. 这里我们的方法是在召回完成之后，将各个attribute的所有的conclusions均召回并且伴随着每个的prob，这样子agent才会意识到一些attribute的不确定性；如果直接按照p召回，那么agent接受的召回的memory还是一个确定性的结论。
 
 ----
 
@@ -240,7 +232,7 @@ First, samples that still failed after 3 restarts are judged as invalid evaluati
 
 Second, for samples that completed after several restarting, every attempt of restarted samples is counted in denominator, so the denominator exceeds the size of the split. This affected 21 Unseen samples of w/o Merge and 9 Seen samples of w/o Add, each restarted 1-3 times. The resulting values were 80/189 × 100 = 42.32 and 31/156 × 100 = 19.87, respectively.
 
-We also check the numbers of all other experiments in our work, and find that they are accurate. So, this metric computation errors only occur when running ablation study experiments due to unstable API rather than intentional things. We repsect the reproducability and honsty in research community. 
+We also check the numbers of all other experiments in our work, and find that they are accurate. So, this metric computation errors only occur when running ablation study experiments due to unstable API rather than intentional things.
 
 **Rerun of the affected settings.** we check the stability of API serive, and re-run the impacted experiments. The updated results are shown below. We will update Table 3, Table 5, and Appendix D.2 accordingly.
 
@@ -253,10 +245,9 @@ BeliefMem (Ours),58.57% (82/140) / 29.77,61.19% (82/134) / 29.34,59.88% / 29.56
 As shown above, after removing belief-based memory, the average SR of BeliefMem decreases from  59.88% to 27.67%, showing the superiority of probabilistic memory paradigm of BeliefMem compared with deterministic paradigm.
 Additionally, w/o Add and w/o Merge degrade the performance of our method to 25.62% and 46.51%, respectively, showing consistent trend with analysis in our work. 
 
-Overall, our work firstly propose a probabilisitic memory paradigm in agent memory to address the self-reinforcing error, which can preserve the uncertainty of external environment, making the memory system more reliable and robust.
-
-
 **λ = 1.0 versus w/o decay.** These two settings are identical under Eq. 9, since λ^τ = 1 for every τ when λ = 1.0. The two rows in Table 8 come from two separate runs of the same configuration. Their difference ( 2 of 140 Seen samples and 4 of 134 Unseen samples) comes from LLM API inference, which remains even at temperature 0. In the revision, we will merge them into a single row and revise the discussion in Appendix D.4.
+
+Overall, our work firstly propose a probabilisitic memory paradigm in agent memory to address the self-reinforcing error, which can preserve the uncertainty of external environment, making the memory system more reliable and robust.
 
 -----
 
@@ -272,7 +263,7 @@ Overall, our work firstly propose a probabilisitic memory paradigm in agent memo
 
 **Q3:** 3.Which reset value is used for a competing candidate in Merge? Section 3.3 states 1/|H_sub(c)|, while Appendix B.2 states 0.25.
 
-**A3:** Thanks for you pointing that. Since our the default setting of |H_sub(c)| is 4 mentioned in Appendix B.3 ([In addition, to reduce cost and latency in BeliefMem, we set the maximum number of candidate conclusions per attribute to 4 during retrieval.] ). Therefore, the Merge will reduce the competing conclusions' probabilities to 1 / 4 = 0.25.
+**A3:** Thanks for you pointing that. Since our the default setting of |H_sub(c)| is 4 mentioned in Appendix B.3 ("In addition, to reduce cost and latency in BeliefMem, we set the maximum number of candidate conclusions per attribute to 4 during retrieval."). Therefore, the Merge will reduce the competing conclusions' probabilities to 1 / 4 = 0.25.
 
 We will refine the statement of this part to make it more clear in Appendix B.2 and B.3.
 
@@ -280,17 +271,17 @@ We will refine the statement of this part to make it more clear in Appendix B.2 
 
 **Q4:** Since the retrieval score in Eq. 9 does not use the candidate scores p, does the “w/o belief-aware retrieval” ablation only remove the scores from the retrieved text given to the agent?
 
-**A4**: Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from
+**A4**: Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from 28.50 / 19.02 to 42.38 / 36.30. These results highlight the effectiveness of the probabilities distribution with candidates.
 
-
-是的， 在召回之后，会retrieved memory会给出每一种可能的conclusions，但是不提供prob， 这使得agent无法measure被扣的可能性。 同时我们也做了打乱prob的实验，可以看到agent可以感知到这个一份probability的表现的影响
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | w/o belief-aware retrieval | 27.12 / 18.98 | 25.67 / 15.43 | 15.89 / 10.12 | 45.31 / 31.55 | 28.50 / 19.02 |
-| Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 | 27.76 / 22.91 |
+
 | **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** | **42.38 / 36.30** |
 
+
+We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
 
 --------
 

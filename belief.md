@@ -177,7 +177,9 @@ Q2: How does performance change when varying the number of distracting hypothese
 
 Q3: How does BeliefMem differ from existing work on persistent memory poisoning and self-reinforcing agent errors?
 
-讨论一下
+A3: BeliefMem differs from both lines in the source of the error, the mechanism of persistence, and the remedy. Memory poisoning studies records crafted by an adversary, such as backdoor triggers planted in long-term memory by AgentPoison, malicious records injected purely through queries by MINJA, and payloads from attacker-controlled web content written into memory by Zombie Agents. BeliefMem instead addresses errors without any adversary: the agent infers a plausible but wrong conclusion from partial and ambiguous observations. In prior work on self-reinforcing errors, an incorrect record is reused as a trusted precedent and replicated in later executions. The corresponding remedies decide whether each record is added, kept, or deleted, through quality assessment before addition or consensus validation across related memories. BeliefMem targets a different mechanism: a deterministic conclusion suppresses the action that would test the conclusion, so disconfirming evidence never arrives. BeliefMem therefore changes the representation rather than filtering records, and keeps competing conclusions with confidence scores so that the alternative remains visible and revisable. BeliefMem is not a security defense, since an adaptive attacker could still supply strong false evidence. 
+
+The two directions are complementary, and we will add this discussion to Section 2.
 
 
 ------
@@ -199,13 +201,13 @@ Q4: If an incorrect high-confidence belief prevents the agent from exploring alt
 
 **The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3 in line 200 of revised version.
 
-[‼️]**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.**  We apologize for the confusion caused by our phrasing in Section 3.3. To clarify, the two operations actually serve distinct roles:
+**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.** We thank the reviewer for the careful reading. The phrasing in Section 3.3 conflated two operations with different goals, which we clarify below.
 
-1. Support for a candidate $h$ accumulates through Noisy-OR without normalization. As a result, strong evidence for $h$ is not diluted when other candidates for the same $c$ appear. This is the property our statement in Section 3.3 is meant to describe.
+1. Unnormalized probability for supporting evidence. BeliefMem doesn't normalize the probabilities of candidates for the same attribute, so the probabilities need not sum to one. When an observation supports $h$, the Noisy-OR update of $h$ depends only on $p_t^{(c)}(h)$ and $\Delta(o_{t+1}, h)$. The statement in line 266 refers to this property: adding or removing alternative candidates never changes the score that a supported $h$ receives.
 
-Noisy-OR, however, can only increase a score. Without an operation that lowers scores, competing candidates that keep receiving support would approach the cap of 0.99 together and become indistinguishable. The reset of Merge provides this operation. When an observation supports a competing candidate, the existing candidate returns to $1/|\mathcal{H}_{\text{sub}}(c)|$, the uniform level over the current candidates. This marks the candidate as contested without discarding it.
+2. **Reset for contradicting evidence.** Candidates of the same attribute are mutually exclusive, so evidence for one candidate is evidence against its competitors. Noisy-OR, however, can only increase a score. Without the reset, a competing candidate would keep its accumulated probability and could still outrank the newly supported candidate. The reset lowers each competing candidate to $1/|\mathcal{H}_{\text{sub}}(c)|$, the score under a uniform assignment over $\mathcal{H}_{\text{sub}}(c)$. The competing candidates thus carry no more confidence than an uninformed alternative, yet none is discarded, so later evidence can still restore them. The dependence on $|\mathcal{H}_{\text{sub}}(c)|$ is therefore intended and applies only to contradicted candidates.
 
-We revise the statement in Section 3.3 to the support update and describe the role of the reset explicitly.
+We revise Section 3.3 to make them more clear in revised version.
 
 **Belief-aware retrieval.** In BeliefMem, retrieval is belief-aware in what it returns: for each of the Top-K attributes, Eq. 10 returns all candidates together with their probabilities, rather than a single conclusion.
 
@@ -220,7 +222,7 @@ The ablation “w/o belief-aware retrieval” follows this definition. It keeps 
 
 ----
 
-**W2:** The ALFWorld success rates contain values that cannot be obtained from the stated number of episodes. SR is the number of solved episodes divided by the total number and times 100. Appendix C.1 states that the Seen set has 140 episodes and the Unseen set has 134. So the number of solved episodes equals 1.4×SR on Seen and 1.34×SR on Unseen, and this must be an integer. In Table 5, w/o Add has a Seen SR of 19.87. It gives 19.87×1.4=27.82 solved episodes. However, 27 solved episodes give 19.29% and 28 give 20.00%, so 19.87% is not possible.The same problem appears in 25.29, 42.32, 27.65 and 29.76 of Table 5, and in the 53.75 for Table 2. Moreover, B.3 reports only one seed 42, and the paper does not mention averaging over multiple runs. These values therefore cannot come from the reported setting. Furthermore, in Table 8, w/o decay and λ = 1.0 should be identical according to Eq. 9. However, the authors report different results.
+**W2&Q1&Q2:** The ALFWorld success rates contain values that cannot be obtained from the stated number of episodes. SR is the number of solved episodes divided by the total number and times 100. Appendix C.1 states that the Seen set has 140 episodes and the Unseen set has 134. So the number of solved episodes equals 1.4×SR on Seen and 1.34×SR on Unseen, and this must be an integer. In Table 5, w/o Add has a Seen SR of 19.87. It gives 19.87×1.4=27.82 solved episodes. However, 27 solved episodes give 19.29% and 28 give 20.00%, so 19.87% is not possible.The same problem appears in 25.29, 42.32, 27.65 and 29.76 of Table 5, and in the 53.75 for Table 2. Moreover, B.3 reports only one seed 42, and the paper does not mention averaging over multiple runs. These values therefore cannot come from the reported setting. Furthermore, in Table 8, w/o decay and λ = 1.0 should be identical according to Eq. 9. However, the authors report different results. / How were the success rates in Table 2 and Table 5 computed? Why do most values correspond to an integer number of solved episodes while some do not? / In Table 8, how does w/o decay differ from λ = 1.0 in the implementation? According to Eq. 9, the two settings should be identical.
 
 **A2:** We thank the reviewer for checking these values so carefully. We check each value back to its evaluation log and found two causes.
 
@@ -251,14 +253,6 @@ Overall, our work firstly propose a probabilisitic memory paradigm in agent memo
 
 -----
 
-**Q1:** How were the success rates in Table 2 and Table 5 computed? Why do most values correspond to an integer number of solved episodes while some do not?
-
-同A2
-
-**Q2:** In Table 8, how does w/o decay differ from λ = 1.0 in the implementation? According to Eq. 9, the two settings should be identical.
-
-同A2
-
 ----
 
 **Q3:** 3.Which reset value is used for a competing candidate in Merge? Section 3.3 states 1/|H_sub(c)|, while Appendix B.2 states 0.25.
@@ -283,6 +277,5 @@ We will refine the statement of this part to make it more clear in Appendix B.2 
 
 We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
 
---------
 
 

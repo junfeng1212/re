@@ -1,11 +1,10 @@
 # Reviewer Wh7d [2: Weak rejection]
 -----
-[**W1&Q1:**] Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
+**[W1&Q1]:** Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
 
-**A1:**  We thank the reviewer for this thoughtful comment. 
+**[A1:]**  We thank the reviewer for this thoughtful comment. 
 
 **BeliefMem assigns the highest belief score to true conclusion, showing the reliability of belief score.** In experiments of Figure 4(b), we track the the Top-1 rate, defined as the fraction of attributes whose true conclusion receives the highest score. As shown in Figure 4(b) (also provided below), with gradual updates, our method BeliefMem rises the Top-1 rate from 7.69% to 84.62%, which means that 84.62% of true conclusions receive the highest belief score among all candidates. In contrast, Mem0 and A-MEM only improve the Top-1 rate to 46.15% and 42.31%, respectively. These results show that BeliefMem can calibrate the belief scores reliably using Noisy-OR update over steps.
-
 
 | Step | BeliefMem | Mem0 | A-MEM |
 | --- | --- | --- | --- |
@@ -18,29 +17,31 @@
 | 400 | 65.38% | 50.00% | 46.15% |
 | 500 | 84.62% | 46.15% | 42.31% |
 
-Additionally, in Table 7 (provided below), Shuffling the belief scores of all candidates of each attribute reduces F1 from 40.51 to 29.72 on multi-hop questions and from 51.88 to 31.22 on temporal questions in LoCoMo benchmark. This experiments further show the effectiveness of belief scores in our work, which can reliably provide the uncertainty in external environement.
+Additionally, in Table 7 (provided below), shuffling the belief scores of all candidates of each attribute reduces F1 from 40.51 to 29.72 on multi-hop questions and from 51.88 to 31.22 on temporal questions in LoCoMo benchmark. This experiments further show the effectiveness of belief scores in our work, which can reliably provide the uncertainty in external environement.
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop |
 | :--- | :---: | :---: | :---: | :---: |
 | Shuffling Probabilities | 29.72 / 24.10 | 31.22 / 27.61 | 17.93 / 14.81 | 32.17 / 25.12 |
 | **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** |
 
-**BeliefMem corrects the contradictory memory over observations.** In experiments of Figure 3, we select several attributes of which contradictory memory receive the highest belief score. Over 10 steps (5 valid observations and 5 correlated observations), BeliefMem can refine 60.80% of contradictory memory into the correct memory (the correct memory outranks the contradictory) with only average 4.75 steps. In contrast, prior deterministic memory method only refine 33.30% of contradictory memory into right memory while using averge 9.45 steps.  These results show the robustness of belief score in BeliefMem due to its memory update over noisy observations.
+**BeliefMem corrects the contradictory memory over observations.** In experiments of Figure 3 (provided below), we select several attributes of which contradictory memory receive the highest belief score. Over 10 steps (5 valid observations and 5 correlated observations), BeliefMem can refine 60.80% of contradictory memory into the correct memory (the correct memory outranks the contradictory) with only average 4.75 steps. In contrast, prior deterministic memory method only refine 33.30% of contradictory memory into right memory while using averge 9.45 steps. These results show the robustness of belief score in BeliefMem due to its memory update over noisy observations.
 
 | Method | Correction Rate$up$ | Correction Steps$down$ |
 | --- | --- | --- |
 | BeliefMem | 60.80% | 4.75 |
 | Deterministic memory system | 33.30% | 9.45 |
 
-Overall, our work firstly proposes the probabilistic paradigm of memory system, enabling the memory system to preserve the uncertainty in POMDP, to address the self-reinforcing error. We believe BeliefMem can provide insights for future agent memory research.
-
-
+Overall, our work firstly proposes the probabilistic paradigm of memory system, and the proposed method BeliefMem use such paradigm to to preserve the uncertainty in POMDP, addressing the self-reinforcing error. We believe BeliefMem can provide insights for future agent memory research.
 
 -----
 
-**W2&Q2:** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
+**[W2&Q2:]** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
 **A2:** ‼️[跑一个额外的benchmark实验] To address your conerns, we further evaluate our method on WebArena benchmark.
+
+
+
+We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
 
 -----
 

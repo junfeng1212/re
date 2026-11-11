@@ -1,6 +1,6 @@
 # Reviewer Wh7d [2: Weak rejection]
 -----
-**W1&Q1:** Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
+[**W1&Q1:**] Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
 
 **A1:**  We thank the reviewer for this thoughtful comment. 
 

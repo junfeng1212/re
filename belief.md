@@ -1,4 +1,4 @@
-## Reviewer Wh7d [2: Weak rejection]
+# Reviewer Wh7d [2: Weak rejection]
 -----
 **W1&Q1:** Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
 
@@ -40,13 +40,13 @@ Overall, our work firstly proposes the probabilistic paradigm of memory system, 
 
 **W2&Q2:** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
-**A2:** ‼️[跑一个额外的benchmark实验]
+**A2:** ‼️[跑一个额外的benchmark实验] To address your conerns, we further evaluate our method on WebArena benchmark.
 
 -----
 
 ------
 
-## Reviewer tp79 [2: Weak rejection]
+# Reviewer tp79 [2: Weak rejection]
 ----
 **W1&Q1:** Misalignment between evaluation and core motivation. LoCoMo primarily evaluates long-term conversational memory and question answering, rather than agent self-evolution or self-reinforcing errors. It lacks the closed-loop interaction required to investigate how incorrect memories influence subsequent actions and observations. Although ALFWorld provides an interactive setting, the experiments do not sufficiently establish the claimed self-reinforcing error mechanism./ Could the authors provide a closed-loop evaluation demonstrating how incorrect memories influence future actions, reinforce themselves, and are eventually corrected by BeliefMem?
 
@@ -115,17 +115,17 @@ Additionally, **BeliefMem assigns the highest belief score to true conclusion.**
 
 ------
 
-**W3:** Incomplete discussion of related work. The paper would benefit from a more comprehensive comparison with recent studies on persistent memory corruption, poisoned experience retrieval, and error propagation in self-evolving agents. The distinction between BeliefMem and these approaches should be clarified.
+**W3&Q3:** Incomplete discussion of related work. The paper would benefit from a more comprehensive comparison with recent studies on persistent memory corruption, poisoned experience retrieval, and error propagation in self-evolving agents. The distinction between BeliefMem and these approaches should be clarified. && How does BeliefMem differ from existing work on persistent memory poisoning and self-reinforcing agent errors?
 
-**A3:** related work. 要和self evolving agent讨论
+**A3:** BeliefMem differs from both lines in the source of the error, the mechanism of persistence, and the remedy. Memory poisoning studies records crafted by an adversary, such as backdoor triggers planted in long-term memory by AgentPoison, malicious records injected purely through queries by MINJA, and payloads from attacker-controlled web content written into memory by Zombie Agents. BeliefMem instead addresses errors without any adversary: the agent infers a plausible but wrong conclusion from partial and ambiguous observations. In prior work on self-reinforcing errors, an incorrect record is reused as a trusted precedent and replicated in later executions. The corresponding remedies decide whether each record is added, kept, or deleted, through quality assessment before addition or consensus validation across related memories. BeliefMem targets a different mechanism: a deterministic conclusion suppresses the action that would test the conclusion, so disconfirming evidence never arrives. BeliefMem therefore changes the representation rather than filtering records, and keeps competing conclusions with confidence scores so that the alternative remains visible and revisable. We will add this discussion to Section 2.
 
 -----
 
-**W4:** Unclear recovery mechanism under incorrect high-confidence beliefs. When an initially incorrect belief already dominates an agent's actions, the agent may avoid behaviors that could generate contradictory evidence. BeliefMem primarily updates confidence after recseiving new observation, but does not explain how corrective evidence can be actively obtained in such situations.
+**W4&Q4:** Unclear recovery mechanism under incorrect high-confidence beliefs. When an initially incorrect belief already dominates an agent's actions, the agent may avoid behaviors that could generate contradictory evidence. BeliefMem primarily updates confidence after recseiving new observation, but does not explain how corrective evidence can be actively obtained in such situations. && If an incorrect high-confidence belief prevents the agent from exploring alternatives, what mechanism enables BeliefMem to escape this feedback loop?
 
-**A4:** 解释一下 当incorrect high-confidence如何修复，给case study
+**A4:** Thanks for your question about our method. We hope the following replies relieve your confusion.
 
-Fig 4的实验回复这个问题
+**High-Confidence beliefs still retain the uncertainty.** In BeliefMem, high-confidence beliefs do not imply deterministic certainty. When updating competing candidates during Merge, we deliberately reset them to a non-zero lower bound (e.g., $0.25$) rather than pruning them to zero. Consider the aforementioned API scenario: consecutive failures push the belief score of "API X failed" to $0.80$, while depressing competing hypotheses like "API X rate-limited" and "Network issue" to $0.25$. Upon retrieval, the agent retains a calibrated distribution over all candidates rather than a collapsed single state. This design preserves the inherent uncertainty of the environment, preventing the agent from prematurely ruling out alternatives and ensuring it remains capable of exploratory retries when downstream actions require API X.
 
 -----
 
@@ -163,14 +163,6 @@ From the second task on, the agent uses fridge 1 in every task. BeliefMem reache
 Q2: How does performance change when varying the number of distracting hypotheses and assigning incorrect or closely competing confidence scores?
 
 同W2
-
-------
-
-Q3: How does BeliefMem differ from existing work on persistent memory poisoning and self-reinforcing agent errors?
-
-A3: BeliefMem differs from both lines in the source of the error, the mechanism of persistence, and the remedy. Memory poisoning studies records crafted by an adversary, such as backdoor triggers planted in long-term memory by AgentPoison, malicious records injected purely through queries by MINJA, and payloads from attacker-controlled web content written into memory by Zombie Agents. BeliefMem instead addresses errors without any adversary: the agent infers a plausible but wrong conclusion from partial and ambiguous observations. In prior work on self-reinforcing errors, an incorrect record is reused as a trusted precedent and replicated in later executions. The corresponding remedies decide whether each record is added, kept, or deleted, through quality assessment before addition or consensus validation across related memories. BeliefMem targets a different mechanism: a deterministic conclusion suppresses the action that would test the conclusion, so disconfirming evidence never arrives. BeliefMem therefore changes the representation rather than filtering records, and keeps competing conclusions with confidence scores so that the alternative remains visible and revisable. BeliefMem is not a security defense, since an adaptive attacker could still supply strong false evidence. 
-
-The two directions are complementary, and we will add this discussion to Section 2.
 
 
 ------

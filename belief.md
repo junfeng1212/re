@@ -116,6 +116,32 @@ Fig 4的实验回复这个问题
 
 Q1: Could the authors provide a closed-loop evaluation demonstrating how incorrect memories influence future actions, reinforce themselves, and are eventually corrected by BeliefMem?
 
+A5: We thank the reviewer for the suggestion and provide the requested closed-loop evaluation below. The experiment proceeds in two stages. First, misleading observations create an incorrect memory. Second, the agent completes a sequence of tasks and writes each trajectory back to memory, so actions in earlier tasks determine the memory available to later tasks.
+
+**Setting.** The experiment uses all 46 Cool & Place tasks of ALFWorld. Each task requires the agent to cool an object with fridge 1 and then place the cooled object at a target receptacle, so success requires using the fridge. BeliefMem is compared with Mem0 and A-MEM. The agent solves the 46 tasks one by one. After each task, the trajectory is written into memory through the native write operation of each method, and the next task retrieves from the updated memory.
+
+**Constructing the incorrect memory.** All methods start from an empty memory and receive the same observations: the agent tries to open fridge 1, and the environment returns “Nothing happens.” The observation is ambiguous, because ALFWorld returns the same message for any action without effect. Each method writes the observations through the native write operation. After writing, Mem0 and A-MEM store “Fridge 1 cannot be opened.” BeliefMem stores two competing conclusions about the fridge: “Fridge 1 cannot be opened” with probability 0.92 and “Fridge 1 can be opened” with probability 0.25. Fridge 1 is then restored, and the evaluation on the 46 tasks begins. After the restoration, the environment never returns a fridge failure, so the stored conclusion “Fridge 1 cannot be opened” is incorrect in every task.
+
+**Metrics.** The evaluation reports the success rate (SR) and the fridge rate, defined as the fraction of tasks with at least one use of fridge 1. As a reference, each method also runs on the same tasks in the same order without the incorrect memory.
+
+Method	SR without incorrect memory (%)	SR with incorrect memory (%)	Fridge rate, tasks 1 to 20 (%)	Fridge rate, tasks 21 to 46 (%)
+Mem0	32.61	23.91	15.00	34.62
+A-MEM	28.26	19.57	10.00	19.23
+BeliefMem	71.74	67.39	100.00	100.00
+
+**Incorrect memory changes future actions.** Without the incorrect memory, all three methods use fridge 1 in all 46 tasks. With the incorrect memory, Mem0 and A-MEM use fridge 1 in only 15% and 10% of the first 20 tasks. Because every task requires fridge 1, the reduced fridge use directly lowers the SR. The SR of Mem0 drops from 32.61% to 23.91%, and the SR of A-MEM drops from 28.26% to 19.57%.
+
+**Incorrect memory reinforces itself.** After fridge 1 is restored, the environment never returns a fridge failure. Nevertheless, the number of memory entries supporting “Fridge 1 cannot be opened” grows from 3 after the first task to 11 after the last task in Mem0, and from 2 to 18 in A-MEM. These new entries come from failed tasks where the agent avoided fridge 1 and attributed the failure to the fridge. Avoiding the fridge therefore generates new evidence for the incorrect conclusion, even though the environment provides none.
+
+**Deterministic memory does not resolve the error.** When the agent occasionally interacts with Fridge 1 and succeeds in opening it, Mem0 and A-MEM add a new entry like "Fridge 1 can be opened" in isolation, while retaining the contradictory "Fridge 1 cannot be opened" along with its associated entries. These contradictory entries then coexist in the retrieved context, and the behavior of the agent remains inconsistent. In tasks 21 to 46, the fridge rate of Mem0 and A-MEM reaches only 34.62% and 19.23%.
+
+**BeliefMem corrects the incorrect memory.** BeliefMem retrieves both conclusions together with the corresponding probabilities, so the agent sees that fridge 1 may still work. In the first task, the agent initially searches for other ways to cool the object. After 36 steps, the agent tries fridge 1 because “Fridge 1 can be opened” still has probability 0.25, and the fridge opens. Merge then incorporates the new observation in two ways (Section 3.3): the Noisy-OR update raises “Fridge 1 can be opened” from 0.25 to 0.83, and the competing conclusion “Fridge 1 cannot be opened” is reset from 0.92 to 0.25.
+
+From the second task on, the agent uses fridge 1 in every task. BeliefMem reaches a fridge rate of 100% and an SR of 67.39%, close to the SR of 71.74% without the incorrect memory.
+
+**Summary.** The experiment covers the closed-loop evaluation. In deterministic memory, the incorrect conclusion suppresses the only action able to refute the conclusion. The resulting failures add entries that support the incorrect conclusion, and the incorrect conclusion persists after contradicting evidence appears. BeliefMem keeps the alternative conclusion visible. The visible alternative leads the agent to test fridge 1 within the first task, and the resulting observation corrects the memory. We will add the experiment to the revision.
+
+
 -----
 
 Q2: How does performance change when varying the number of distracting hypotheses and assigning incorrect or closely competing confidence scores?

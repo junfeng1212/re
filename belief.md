@@ -153,19 +153,19 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 **A1:**  Thanks for your detained comments on our work. We hope the following replies can address your concerns.
 
-**Undefined $z_t$ is a typo.** Since we mention that agent should read $o_t$ and $m_t$ to select action $a_t$ in line 199 ("The agent selects $a_t$ conditioned on $o_t$ and $m_t$"), namely $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2. We revise this typo in the line 170 of revised version.
+**Undefined $z_t$ is a typo.** Since we mention that agent should read $o_t$ and $m_t$ to select action $a_t$ in line 199 ("The agent selects $a_t$ conditioned on $o_t$ and $m_t$"), namely $a_t \sim \pi(\cdot \mid o_t, m_t)$, where $m_t = \text{Read}(M_t, o_t)$ is the memory context defined in Eq. 2. We revise this typo in the line 170 of revised version (highlighted in red).
 
-**$M_t$ and $M_c$.** Using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}\_1, \dots, h^{(c)}\_{|\mathcal{H}(c)|}\}$ and remove $M_c$, making our writing more clear. We revise it in the line 183 of revised version.
+**$M_t$ and $M_c$.** Using $M_c$ for the number of hypotheses conflicts with the memory $M_t$. We now write $\mathcal{H}(c) = \{h^{(c)}\_1, \dots, h^{(c)}\_{|\mathcal{H}(c)|}\}$ and remove $M_c$, making our writing more clear. We revise it in the line 183 of revised version (highlighted in red).
 
-**The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3 in line 200 of revised version.
+**The update in Eq. 3.** Thanks for your pointing out. We revise Eq. 3 to $M_{t+1} = \text{Update}(M_t, a_t, o_{t+1})$. We also revise the paragraph to state that the action and the resulting observation $(a_t, o_{t+1})$ are written back via Eq. 3 in line 200 of revised version (highlighted in red).
 
-**Normalization and the reset to $1/|\mathcal{H}_{\text{sub}}(c)|$.** We thank the reviewer for the careful reading. The phrasing in Section 3.3 conflated two operations with different goals, which we clarify below.
+**Normalization and the reset to $1/|H_{\text{sub}}(c)|$.** We thank the reviewer for the careful reading. The phrasing in Section 3.3 conflated two operations with different goals, which we clarify below.
 
-1. Unnormalized probability for supporting evidence. BeliefMem doesn't normalize the probabilities of candidates for the same attribute, so the probabilities need not sum to one. When an observation supports $h$, the Noisy-OR update of $h$ depends only on $p_t^{(c)}(h)$ and $\Delta(o_{t+1}, h)$. The statement in line 266 refers to this property: adding or removing alternative candidates never changes the score that a supported $h$ receives.
+1. Unnormalized probability. BeliefMem doesn't normalize the probabilities of candidates for the same attribute, so the probabilities need not sum to one. When an observation supports $h$, the Noisy-OR update of $h$ depends only on $p_t^{(c)}(h)$ and $\Delta(o_{t+1}, h)$. The statement in line 254 refers to this property: adding or removing alternative candidates never changes the score that a supported $h$ receives.
 
-2. Reset for contradicting evidence. Candidates of the same attribute are mutually exclusive, so evidence for one candidate is evidence against its competitors. Noisy-OR, however, can only increase a score. Without the reset, a competing candidate would keep its accumulated probability and could still outrank the newly supported candidate. The reset lowers each competing candidate to $1/|\mathcal{H}_{\text{sub}}(c)|$, the score under a uniform assignment over $\mathcal{H}_{\text{sub}}(c)$. The competing candidates thus carry no more confidence than an uninformed alternative, yet none is discarded, so later evidence can still restore them. The dependence on $|\mathcal{H}_{\text{sub}}(c)|$ is therefore intended and applies only to contradicted candidates.
+2. Reset for contradicting evidence. Candidates of the same attribute are mutually exclusive, so evidence for one candidate is evidence against its competitors. Noisy-OR, however, can only increase a score. Without the reset, a competing candidate would keep its accumulated probability and could still outrank the newly supported candidate. The reset lowers each competing candidate to $1/|H_{\text{sub}}(c)|$, the score under a uniform assignment over $H_{\text{sub}}(c)$. The competing candidates thus carry no more confidence than an uninformed alternative, yet none is discarded, so later evidence can still restore them. The dependence on $|H_{\text{sub}}(c)|$ is therefore intended and applies only to contradicted candidates.
 
-We revise Section 3.3 to make them more clear in revised version.
+We refine the statement in Section 3.3 to make it more clear (highlighted in red).
 
 **Belief-aware retrieval.** In BeliefMem, retrieval is belief-aware in what it returns: for each of the Top-K attributes, Eq. 10 returns all candidates together with their probabilities, rather than a single conclusion.
 
@@ -194,7 +194,7 @@ Second, for samples that completed after several restarting, every attempt of re
 
 We also check the numbers of all other experiments in our work, and find that they are accurate. So, this metric computation errors only occur when running ablation study experiments due to unstable API rather than intentional things.
 
-**Rerun of the affected settings.** we check the stability of API serive, and re-run the impacted experiments. The updated results are shown below. We will update Table 3, Table 5, and Appendix D.2 accordingly.
+**Rerun of the affected settings.** we check the stability of API serive, and re-run the impacted experiments. The updated results are shown below. We update Table 3, Table 5, and Appendix D.2 accordingly in revised version (highlighted in red).
 
 Method,Seen SR / #Steps,Unseen SR / #Steps,Avg. SR / #Steps
 w/o belief-based memory,30.71% (43/140) / 37.84,24.63% (33/134) / 39.72,27.67% / 38.78
@@ -205,9 +205,9 @@ BeliefMem (Ours),58.57% (82/140) / 29.77,61.19% (82/134) / 29.34,59.88% / 29.56
 As shown above, after removing belief-based memory, the average SR of BeliefMem decreases from  59.88% to 27.67%, showing the superiority of probabilistic memory paradigm of BeliefMem compared with deterministic paradigm.
 Additionally, w/o Add and w/o Merge degrade the performance of our method to 25.62% and 46.51%, respectively, showing consistent trend with analysis in our work. 
 
-**λ = 1.0 versus w/o decay.** These two settings are identical under Eq. 9, since λ^τ = 1 for every τ when λ = 1.0. The two rows in Table 8 come from two separate runs of the same configuration. Their difference ( 2 of 140 Seen samples and 4 of 134 Unseen samples) comes from LLM API inference, which remains even at temperature 0. In the revision, we will merge them into a single row and revise the discussion in Appendix D.4.
+**λ = 1.0 versus w/o decay.** These two settings are identical under Eq. 9, since λ^τ = 1 for every τ when λ = 1.0. The two rows in Table 8 come from two separate runs of the same configuration. Their difference ( 2 of 140 Seen samples and 4 of 134 Unseen samples) comes from LLM API inference, which remains even at temperature 0. In the revision, we merge them into a single row and revise the discussion in Appendix D.4 (highlighted in red).
 
-Overall, our work firstly propose a probabilisitic memory paradigm in agent memory to address the self-reinforcing error, which can preserve the uncertainty of external environment, making the memory system more reliable and robust.
+Overall, our work firstly propose a probabilisitic memory paradigm in agent memory, which produces substantial gains and explores a new direction for agent memory in partially observable environments.
 
 -----
 
@@ -215,19 +215,21 @@ Overall, our work firstly propose a probabilisitic memory paradigm in agent memo
 
 **A3:** Thanks for you pointing that. Since our the default setting of |H_sub(c)| is 4 mentioned in Appendix B.3 ("In addition, to reduce cost and latency in BeliefMem, we set the maximum number of candidate conclusions per attribute to 4 during retrieval."). Therefore, the Merge will reduce the competing conclusions' probabilities to 1 / 4 = 0.25.
 
-We will refine the statement of this part to make it more clear in Appendix B.2 and B.3.
+We refine the statement of this part to make it more clear in Appendix B.2 and B.3 (highlighted in red).
 
 ------
 
 **[Q4:]** Since the retrieval score in Eq. 9 does not use the candidate scores p, does the “w/o belief-aware retrieval” ablation only remove the scores from the retrieved text given to the agent?
 
-**[A4:]** Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from 28.50 / 19.02 to 42.38 / 36.30. These results highlight the effectiveness of the probabilities distribution with candidates.
+**[A4:]** Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from 28.50 / 19.02 to 42.38 / 36.30. These results highlight the effectiveness of the probabilities distribution with candidates in BeliefMem's retrieval.
 
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | w/o belief-aware retrieval | 27.12 / 18.98 | 25.67 / 15.43 | 15.89 / 10.12 | 45.31 / 31.55 | 28.50 / 19.02 |
 | **BeliefMem (ours)** | **40.51 / 32.24** | **51.88 / 45.78** | **28.73 / 25.12** | **48.41 / 42.07** | **42.38 / 36.30** |
+
+
 
 
 We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.

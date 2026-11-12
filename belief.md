@@ -31,17 +31,43 @@ Additionally, in Table 7 (provided below), shuffling the belief scores of all ca
 | BeliefMem | 60.80% | 4.75 |
 | Deterministic memory system | 33.30% | 9.45 |
 
-Overall, our work firstly proposes the probabilistic paradigm of memory system, and the proposed method BeliefMem use such paradigm to to preserve the uncertainty in POMDP, addressing the self-reinforcing error. We believe BeliefMem can provide insights for future agent memory research.
+
 
 -----
 
 **[W2&Q2:]** Effectiveness in broader agentic setting. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
-**[A2:]** ‼️[跑一个额外的benchmark实验] To address your conerns, we further evaluate our method on WebArena benchmark.
+**[A2:]** To address your conerns, we further evaluate our method BeliefMem on online agent setting with ScienceWorld [1] benchmark. Our experiments show that BeliefMem outperforms other baseline methods and refines own performance over the online memory updates.
+
+**Settings.** To evaluate BeliefMem in an online agent scenario, we conduct experiments on ScienceWorld, a text-based interactive environment covering 30 science task types. Unlike the ALFWorld setting, where memory is constructed offline from expert trajectories, the memory bank here starts empty, and the agent solves a stream of 270 tasks sequentially in a fixed order. After each task, the agent's own trajectory is written into memory via each method's native write operation and retrieved to solve subsequent tasks. The baseline methods include Mem0, A-MEM, MemoryOS, and Non-memory. The base model is Qwen3-Next-80B-A3B-Instruct. We report the average progress score (Score) defined in [1].
 
 
+**BeliefMem continually improves in online settings, and outperforms other baselines.**
+Overall, BeliefMem achieves an average score of 58.0 on ScienceWorld,
+outperforming No-Memory (49.4) and the strongest baseline, Mem0
+(46.9). To examine how memory evolves as experience accumulates, we split the task stream into the first 40\% and the remaining 60\% of tasks (as shown above). In the early stage, where the memory bank contains few entries, all memory-based methods perform close to No-Memory (47.8 --51.4 vs.\ 49.1), suggesting that the
+advantage of BeliefMem arises from what it accumulates during the stream rather than from its initial setup. As the stream proceeds, the methods diverge.
+BeliefMem improves from 51.4 to 62.4, exceeding No-Memory by
+12.8 scores on the remaining tasks. In contrast, all three deterministic
+baselines degrade: Mem0, A-MEM, and MemoryOS drop by 4.0, 5.5, and
+8.5 scores, respectively, and fall below No-Memory baseline (49.6). This
+degradation reflects the self-reinforcing error discussed in our work: these methods summarize memories directly from the agent's own trajectories, spurious conclusions drawn from early failures are persisted as deterministic conclusions. Retrieving these flawed priors biases subsequent trajectories toward repeating the same mistakes, creating a self-reinforcing error loop that severely degrades performance in online settings. BeliefMem avoids this by retaining competing conclusions with probabilities, so that later successful trajectories can raise the probability of the correct conclusion through the Noisy-OR update
+instead of being overridden by earlier flawed ones. These results further demonstrate our method's effectiveness in interactive agent settings, where probabilistic memory prevents agents from self-reinforcing errors in memory.
+
+| Method | Score | Score (first 40% tasks) | Score (remaining 60% tasks) |
+| :--- | :---: | :---: | :---: |
+| No-Memory | 49.4 | 49.1 | 49.6 |
+| MemoryOS | 42.7 | 47.8 | 39.3 |
+| A-MEM | 45.2 | 48.5 | 43.0 |
+| Mem0 | 46.9 | 49.3 | 45.3 |
+| **BeliefMem (ours)** | **58.0** | **51.4** | **62.4** | 
+
+
+Overall, our work firstly proposes the probabilistic paradigm of memory system, and the proposed method BeliefMem use such paradigm to to preserve the uncertainty in POMDP, addressing the self-reinforcing error. We believe BeliefMem can provide insights for future agent memory research.
 
 We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
+
+[1] ScienceWorld: Is your Agent Smarter than a 5th Grader? EMNLP2022.
 
 -----
 

@@ -79,9 +79,9 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 **A1:** We thank the reviewer for the suggestion and provide the closed-loop evaluation below. Our experiments show that incorrect memories can mislead the agent into taking erroneous actions, thereby preventing it from acquiring corrective observations. In contrast, by consistently maintaining multiple hypotheses in memory, BeliefMem effectively escapes this loop through iterative memory updates.
 
-**Experiment setting.** The experiment uses all 46 Cool & Place tasks of ALFWorld, which require the agent to cool an object with fridge 1 and then place the cooled object at a target receptacle, so success requires using the fridge. BeliefMem is compared with Mem0 and A-MEM. The agent solves the 46 tasks one by one. And the order of all tasks is random. After each task, the trajectory is written into memory through the native write operation of each method, and the next task retrieves from the updated memory.
+**Experiment setting.** We compare BeliefMem with Mem0 and A-MEM on all 46 ALFWorld Cool & Place tasks requiring Fridge 1. The agent executes these tasks sequentially in random order; after each task, the trajectory is stored via each method’s native write operation, updating the memory for subsequent retrieval.
 
-**Constructing the incorrect memory.** All methods start from an empty memory and receive the same observations: the agent tries to open fridge 1, and the environment returns “Nothing happens.” Each method writes the observations through the native write operation. After writing, Mem0 and A-MEM store “Fridge 1 cannot be opened.” BeliefMem stores two competing conclusions about the fridge: “Fridge 1 cannot be opened” with probability 0.92 and “Fridge 1 can be opened” with probability 0.25. Fridge 1 is then restored, and the evaluation on the 46 tasks begins. After the restoration, the environment never returns a fridge failure, so the stored conclusion “Fridge 1 cannot be opened” is incorrect in every task.
+**Constructing the incorrect memory.** All methods start from an empty memory and receive the same observations: the agent tries to open fridge 1, and the environment returns “Nothing happens.” After memory updates, Mem0 and A-MEM store “Fridge 1 cannot be opened.” BeliefMem stores two competing conclusions about the fridge: “Fridge 1 cannot be opened” with probability 0.92 and “Fridge 1 can be opened” with probability 0.25. After the recovery of fridge 1, the environment never returns a fridge failure, so the stored conclusion “Fridge 1 cannot be opened” is incorrect in every task.
 
 **Metrics.** The evaluation reports the success rate (SR) and the *fridge rate*, defined as the fraction of tasks with at least one use of fridge 1. As a reference, each method also runs on the same tasks in the same order without the incorrect memory.
 
@@ -115,7 +115,7 @@ We add this experiment and discussion in Appendix D.5 of revised version (noted 
 
 **Probabilistic memory addresses conflicting or misleading information preserved in multiple candidate conclusions.** In ablation studies, we remove the all probabilities of all candidates of each attribute $c$ (w/o belief-aware retrieval). As shown below, removing these probabilities only achieve the average performance of 28.50 / 19.02 on LoCoMo benchmark. However, when BeliefMem with these probabilities, it improves the average performance from 28.50 / 19.02 to 42.38 / 36.30. These results show that preserving multiple candidate conclusions can impact the decisions of agents due to conflicting information over there. Our BeliefMem can handle this challenge by ranking these conflicting information using probabilities, enabling agents to know which candidate conclusion is most reliable.
 
-**Wrong probability distribution notably degrades the performance of BeliefMem.** In Table 9, we conduct experiments where we shuffle the probability of each candidate given an attribute $c$. As shown in Table 9 (also provided below), shuffling probabilities results in notable performance degradation on the LoCoMo benchmark, degrading performance by an average of 14.62% / 13.39%. These results further demonstrate the effectiveness of our probabilistic memory paradigm.
+**Wrong probability distribution notably degrades the performance of BeliefMem.** In Table 7, we conduct experiments where we shuffle the probability of each candidate given an attribute $c$. As shown in Table 7 (also provided below), shuffling probabilities results in notable performance degradation on the LoCoMo benchmark, degrading performance by an average of 14.62% / 13.39%. These results further demonstrate the effectiveness of our probabilistic memory paradigm.
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -225,8 +225,8 @@ We also check the numbers of all other experiments in our work, and find that th
 | Method | Seen SR / #Steps | Unseen SR / #Steps | Avg. SR / #Steps |
 | :--- | :---: | :---: | :---: |
 | w/o belief-based memory | 30.71% (43/140) / 37.84 | 24.63% (33/134) / 39.72 | 27.67% / 38.78 |
-| w/o Add | 22.14% (31/140) / 39.19 | 29.10% (39/134) / 41.48 | 25.62% / 40.34 |
-| w/o Merge | 39.29% (55/140) / 32.38 | 53.73% (72/134) / 32.52 | 46.51% / 32.45 |
+| w/o Add | 22.86% (32/140) / 39.19 | 29.10% (39/134) / 41.48 | 25.98% / 40.34 |
+| w/o Merge | 39.29% (55/140) / 32.38 | 58.21% (78/134) / 32.52 | 48.75% / 32.45 |
 | **BeliefMem (Ours)** | **58.57% (82/140) / 29.77** | **61.19% (82/134) / 29.34** | **59.88% / 29.56** |
 
 As shown above, after removing belief-based memory, the average SR of BeliefMem decreases from  59.88% to 27.67%, showing the superiority of probabilistic memory paradigm of BeliefMem compared with deterministic paradigm.

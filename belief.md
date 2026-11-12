@@ -1,6 +1,6 @@
 # Reviewer Wh7d [2: Weak rejection]
 -----
-**[W1&Q1]:** Storing multiple conclusions with confidence scores can improve performance. However, BeliefMem relies on uncalibrated LLM confidence scores and heuristic Noisy-OR updates. It is unclear whether these updates reliably represent uncertainty, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
+**[W1&Q1]:** Reliability of uncertainty represented by confidence scores updated Noisy-OR, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
 
 **[A1:]**  We thank the reviewer for this thoughtful comment. 
 
@@ -35,7 +35,7 @@ Overall, our work firstly proposes the probabilistic paradigm of memory system, 
 
 -----
 
-**[W2&Q2:]** BeliefMem is motivated by interactive agent settings, where memory influences future actions and observations. However, the evaluation primarily focuses on conversational QA, with ALFWorld as the only interactive agent benchmark. This provides limited evidence of its effectiveness in broader agentic settings. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
+**[W2&Q2:]** Effectiveness in broader agentic setting. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
 **[A2:]** ‼️[跑一个额外的benchmark实验] To address your conerns, we further evaluate our method on WebArena benchmark.
 
@@ -49,7 +49,7 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 # Reviewer tp79 [2: Weak rejection]
 ----
-**[W1&Q1:]** Misalignment between evaluation and core motivation. LoCoMo primarily evaluates long-term conversational memory and question answering, rather than agent self-evolution or self-reinforcing errors. It lacks the closed-loop interaction required to investigate how incorrect memories influence subsequent actions and observations. Although ALFWorld provides an interactive setting, the experiments do not sufficiently establish the claimed self-reinforcing error mechanism. && Could the authors provide a closed-loop evaluation demonstrating how incorrect memories influence future actions, reinforce themselves, and are eventually corrected by BeliefMem?
+**[W1&Q1:]** Lacking closed-loop interaction required to investigate how incorrect memories influence subsequent actions and observations.  && Could the authors provide a closed-loop evaluation demonstrating how incorrect memories influence future actions, reinforce themselves, and are eventually corrected by BeliefMem?
 
 **A1:** We thank the reviewer for the suggestion and provide the closed-loop evaluation below. The experiment proceeds in two stages. First, misleading observations create an incorrect memory. Second, the agent completes a sequence of tasks and writes each trajectory back to memory, so actions in earlier tasks determine the memory available to later tasks.
 
@@ -79,7 +79,7 @@ From the second task on, the agent uses fridge 1 in every task. BeliefMem reache
 
 ----
 
-**[W2&Q2:]** Insufficient analysis of noise from competing hypotheses. Preserving multiple candidate conclusions may introduce conflicting or misleading information during retrieval, potentially degrading downstream decisions. While the paper examines retrieval size, it does not systematically investigate how the number of conflicting candidates or their confidence distributions affect task performance. More targeted ablations are necessary. && How does performance change when varying the number of distracting hypotheses and assigning incorrect or closely competing confidence scores?
+**[W2&Q2:]** Insufficient analysis of noise from competing hypotheses. && How does performance change when varying the number of distracting hypotheses and assigning incorrect or closely competing confidence scores?
 
 **[A2:]** Thanks for your insightful comments on our work. We hope the following replies could address your concerns.
 
@@ -118,7 +118,7 @@ Overall, our work firstly proposes the probabilistic memory paradigm in agent me
 
 ------
 
-**[W3&Q3:]** Incomplete discussion of related work. The paper would benefit from a more comprehensive comparison with recent studies on persistent memory corruption, poisoned experience retrieval, and error propagation in self-evolving agents. The distinction between BeliefMem and these approaches should be clarified. && How does BeliefMem differ from existing work on persistent memory poisoning and self-reinforcing agent errors?
+**[W3&Q3:]** Incomplete discussion of works on persistent memory corruption, poisoned experience retrieval, and error propagation in self-evolving agents. && How does BeliefMem differ from existing work on persistent memory poisoning and self-reinforcing agent errors?
 
 **[A3:]** BeliefMem differs from works on persistent memory poisoning and self-reinforcing agent errors in the source of the error, the mechanism of persistence, and the soultion. Memory poisoning studies records crafted by an adversary, such as backdoor triggers planted in long-term memory by AgentPoison [1], malicious records injected purely through queries by MINJA [2], and payloads from attacker-controlled web content written into memory by Zombie Agents [3]. **BeliefMem instead addresses errors without any adversary: the agent infers a plausible but wrong conclusion from partial and ambiguous observations.** In prior work on self-reinforcing errors, an incorrect record is reused as a trusted experience and replicated in later executions [4,5]. The corresponding solutions decide whether each record is added, kept, or deleted, through quality assessment before addition [4] or consensus validation across related memories [6]. **BeliefMem targets a different mechanism: a deterministic conclusion suppresses the action that would test the conclusion, so disconfirming evidence never arrives.** BeliefMem therefore changes the representation rather than filtering records, and keeps competing conclusions with confidence scores so that the alternative remains visible and revisable. We will add this discussion to Section 2.
 
@@ -131,7 +131,7 @@ Overall, our work firstly proposes the probabilistic memory paradigm in agent me
 
 -----
 
-**[W4&Q4:]** Unclear recovery mechanism under incorrect high-confidence beliefs. When an initially incorrect belief already dominates an agent's actions, the agent may avoid behaviors that could generate contradictory evidence. BeliefMem primarily updates confidence after recseiving new observation, but does not explain how corrective evidence can be actively obtained in such situations. && If an incorrect high-confidence belief prevents the agent from exploring alternatives, what mechanism enables BeliefMem to escape this feedback loop?
+**[W4&Q4:]** Unclear recovery mechanism under incorrect high-confidence beliefs. && If an incorrect high-confidence belief prevents the agent from exploring alternatives, what mechanism enables BeliefMem to escape this feedback loop?
 
 **[A4:]** Thank you for your question regarding our method. We hope the following response addresses your concerns.
 
@@ -144,7 +144,7 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 # Reviewer nZa7 [1: clear rejection]
 
-**[W1:]** The notation is inconsistent in several places. First, the formula above eq. 3 is written as a_t ∼ π(· | o_t, z_t), but z_t is never defined. Second, the letter M is used for two different things. M_t in Eq. 2 denotes the external memory, while M_c in H(c) = {h_1^(c), ..., h_{M_c}^(c)} denotes the number of hypotheses. Third, Eq. 3 updates the memory as Update(M_t, o_t, o_{t+1}) without a_t. However, the paragraph on self-reinforcing error says that the transition (o_t, a_t, o_{t+1}) is written back to memory via Eq. 3. Fourth, in the paragraph on belief update, the authors keep scores unnormalised so that the score of a supported h is not affected by the number of alternative candidates for the same c. However, in Merge, a competing candidate is reset to 1/|H_sub(c)|, which depends directly on the number. Moreover, the retrieval score α_t(c) in Eq. 9 depends only on semantic similarity and time decay but p is not used. So retrieval ranking is not belief-aware.
+**[W1:]** The notation is inconsistent in several places; Merge reintroduces candidate count dependence, contradicting unnormalized belief score updates; Moreover, the retrieval score α_t(c) in Eq. 9 depends only on semantic similarity and time decay but p is not used. So retrieval ranking is not belief-aware.
 
 **A1:**  Thanks for your detained comments on our work. We hope the following replies can address your concerns.
 
@@ -175,7 +175,7 @@ The ablation “w/o belief-aware retrieval” follows this definition. It keeps 
 
 ----
 
-**[W2&Q1&Q2:]** The ALFWorld success rates contain values that cannot be obtained from the stated number of episodes. SR is the number of solved episodes divided by the total number and times 100. Appendix C.1 states that the Seen set has 140 episodes and the Unseen set has 134. So the number of solved episodes equals 1.4×SR on Seen and 1.34×SR on Unseen, and this must be an integer. In Table 5, w/o Add has a Seen SR of 19.87. It gives 19.87×1.4=27.82 solved episodes. However, 27 solved episodes give 19.29% and 28 give 20.00%, so 19.87% is not possible.The same problem appears in 25.29, 42.32, 27.65 and 29.76 of Table 5, and in the 53.75 for Table 2. Moreover, B.3 reports only one seed 42, and the paper does not mention averaging over multiple runs. These values therefore cannot come from the reported setting. Furthermore, in Table 8, w/o decay and λ = 1.0 should be identical according to Eq. 9. However, the authors report different results. / How were the success rates in Table 2 and Table 5 computed? Why do most values correspond to an integer number of solved episodes while some do not? / In Table 8, how does w/o decay differ from λ = 1.0 in the implementation? According to Eq. 9, the two settings should be identical.
+**[W2&Q1&Q2:]** Parts of reported ALFWorld success rates are mathematically impossible, while equivalent decay settings yield conflicting empirical results. && How were the success rates in Table 2 and Table 5 computed? Why do most values correspond to an integer number of solved episodes while some do not? && In Table 8, how does w/o decay differ from λ = 1.0 in the implementation? According to Eq. 9, the two settings should be identical.
 
 **[A2:]** We thank the reviewer for checking these values so carefully. We check each value back to its evaluation log and found two causes.
 

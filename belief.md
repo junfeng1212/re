@@ -39,20 +39,11 @@ Additionally, in Table 7 (provided below), shuffling the belief scores of all ca
 
 **[A2:]** Thank you for your thoughtful comments and valuable suggestions. To address your conerns, we further evaluate our method BeliefMem on online agent setting with ScienceWorld [1] benchmark. Our experiments show that BeliefMem outperforms other baseline methods and refines own performance over the online memory updates.
 
-**Settings.** To evaluate BeliefMem in an online agent scenario, we conduct experiments on ScienceWorld, a text-based interactive environment covering 30 science task types. Unlike the ALFWorld setting, where memory is constructed offline from expert trajectories, the memory bank here starts empty, and the agent solves a stream of 270 tasks sequentially in a fixed order. After each task, the agent's own trajectory is written into memory via each method's native write operation and retrieved to solve subsequent tasks. The baseline methods include Mem0, A-MEM, MemoryOS, and Non-memory. The base model is Qwen3-Next-80B-A3B-Instruct. We report the average progress score (Score) defined in [1].
+**Settings.** To evaluate BeliefMem in an online setting, we test it on ScienceWorld, a text-based interactive environment spanning 30 science task types. Starting with an empty memory bank, the agent sequentially solves 270 tasks in a fixed order, storing each trajectory via the method's native write operation for subsequent retrieval. Using Qwen3-Next-80B-A3B-Instruct as the backbone, we compare BeliefMem against Mem0, A-MEM, MemoryOS, and a Non-memory baseline, reporting the average progress score (Score) defined in [1].
 
 
 **BeliefMem continually improves in online settings, and outperforms other baselines.**
-Overall, BeliefMem achieves an average score of 58.0 on ScienceWorld,
-outperforming No-Memory (49.4) and the strongest baseline, Mem0
-(46.9). To examine how memory evolves as experience accumulates, we split the task stream into the first 40\% and the remaining 60\% of tasks (as shown above). In the early stage, where the memory bank contains few entries, all memory-based methods perform close to No-Memory (47.8 --51.4 vs.\ 49.1), suggesting that the
-advantage of BeliefMem arises from what it accumulates during the stream rather than from its initial setup. As the stream proceeds, the methods diverge.
-BeliefMem improves from 51.4 to 62.4, exceeding No-Memory by
-12.8 scores on the remaining tasks. In contrast, all three deterministic
-baselines degrade: Mem0, A-MEM, and MemoryOS drop by 4.0, 5.5, and
-8.5 scores, respectively, and fall below No-Memory baseline (49.6). This
-degradation reflects the self-reinforcing error discussed in our work: these methods summarize memories directly from the agent's own trajectories, spurious conclusions drawn from early failures are persisted as deterministic conclusions. Retrieving these flawed priors biases subsequent trajectories toward repeating the same mistakes, creating a self-reinforcing error loop that severely degrades performance in online settings. BeliefMem avoids this by retaining competing conclusions with probabilities, so that later successful trajectories can raise the probability of the correct conclusion through the Noisy-OR update
-instead of being overridden by earlier flawed ones. These results further demonstrate our method's effectiveness in interactive agent settings, where probabilistic memory prevents agents from self-reinforcing errors in memory.
+Overall, BeliefMem achieves 58.0 on ScienceWorld, surpassing No-Memory (49.4) and the strongest baseline, Mem0 (46.9). Spliting the task stream into the first 40% and remaining 60% highlights the impact of memory accumulation: while all methods start near No-Memory (47.8--51.4 vs.\ 49.1), BeliefMem subsequently rises to 62.4 (+12.8 scores over No-Memory), whereas deterministic baselines (Mem0, A-MEM, MemoryOS) drop by 4.0--8.5 scores and fall below No-Memory (49.6). This divergence stems from deterministic baselines persisting early spurious conclusions as fixed priors, creating a self-reinforcing error loop. By maintaining competing hypotheses probabilistically and refining them via Noisy-OR updates, BeliefMem allows later successes to correct early flaws, preventing error propagation in online interactive agents.
 
 | Method | Score | Score (first 40% tasks) | Score (remaining 60% tasks) |
 | :--- | :---: | :---: | :---: |
@@ -61,7 +52,6 @@ instead of being overridden by earlier flawed ones. These results further demons
 | A-MEM | 45.2 | 48.5 | 43.0 |
 | Mem0 | 46.9 | 49.3 | 45.3 |
 | **BeliefMem (ours)** | **58.0** | **51.4** | **62.4** | 
-
 
 Overall, our work firstly proposes the probabilistic paradigm of memory system, and the proposed method BeliefMem use such paradigm to to preserve the uncertainty in POMDP, addressing the self-reinforcing error. We believe BeliefMem can provide insights for future agent memory research.
 
@@ -101,9 +91,7 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 From the second task on, the agent uses fridge 1 in every task. BeliefMem reaches a fridge rate of 100% and an SR of 67.39%, close to the SR of 71.74% without the incorrect memory.
 
-**Summary.** The experiment covers the closed-loop evaluation. In deterministic memory, the incorrect conclusion suppresses the only action able to refute the conclusion. The resulting failures add entries that support the incorrect conclusion, and the incorrect conclusion persists after contradicting evidence appears. BeliefMem keeps the alternative conclusion visible. The visible alternative leads the agent to test fridge 1 within the first task, and the resulting observation corrects the memory. These results further show that the proposed method can effectively address the self-reinforcing error in agent memory.
-
-Overall, our work firstly proposes the probabilistic memory paradigm in agent memory, and introduces a promising way to address self-reinforcing error, providing a novel insight for the community.
+These results further show that the proposed method can effectively address the self-reinforcing error in agent memory. Overall, our work firstly proposes the probabilistic memory paradigm in agent memory, and introduces a promising way to address self-reinforcing error, providing a novel insight for the community.
 
 We add this experiment and discussion in Appendix D.5 of revised version (noted with purple color).
 
@@ -163,9 +151,7 @@ Additionally, **BeliefMem assigns the highest belief score to true conclusion.**
 
 **[A4:]** Thank you for your question regarding our method. We hope the following response addresses your concerns.
 
-**High-Confidence beliefs still retain the uncertainty about competing candidates.** In BeliefMem, high-confidence beliefs do not imply deterministic certainty. When updating competing candidates with Merge, we deliberately reset them to a non-zero lower bound (e.g., $0.25$) rather than pruning them to zero. Consider the aforementioned API scenario: consecutive failures push the belief score of "API X failed" to $0.80$, while depressing competing hypotheses like "API X rate-limited" and "Network issue" to $0.25$. Upon retrieval, the agent retains a calibrated distribution over all candidates rather than a collapsed single state. This design preserves the inherent uncertainty of the environment, preventing the agent from prematurely ruling out alternatives and ensuring it remains capable of exploratory retries when downstream actions require API X.
-
-By consistently preserving uncertainty over multiple candidates rather than committing to a single deterministic conclusion, BeliefMem maintains reliable memory when facing ambiguous and noisy observations.
+**High-Confidence beliefs still retain the uncertainty about competing candidates.** In BeliefMem, high-confidence beliefs do not imply deterministic certainty. When updating competing candidates with Merge, we deliberately reset them to a non-zero lower bound (e.g., $0.25$) rather than pruning them to zero. Consider the aforementioned API scenario: consecutive failures push the belief score of "API X failed" to $0.80$, while depressing competing hypotheses like "API X rate-limited" and "Network issue" to $0.25$. Upon retrieval, the agent retains a calibrated distribution over all candidates rather than a collapsed single state. This design preserves the inherent uncertainty of the environment, preventing the agent from prematurely ruling out alternatives and ensuring it remains capable of exploratory retries when downstream actions require API X. By consistently preserving uncertainty over multiple candidates rather than committing to a single deterministic conclusion, BeliefMem maintains reliable memory when facing ambiguous and noisy observations.
 
 Overall, our paper is the first work to propose the probabilistic memory paradigm which produces substantial gains and explores a new direction for agent memory in partially observable environments. 
 
@@ -197,7 +183,7 @@ We refine the statement in Section 3.3 to make it more clear (highlighted in red
 
 The ablation “w/o belief-aware retrieval” follows this definition. It keeps the ranking unchanged and only removes the probabilities from the returned candidates. This change alone reduces the average F1 on LoCoMo from 42.38 to 28.50.
 
-**We keep $p$ out of the ranking by design.** When we directly use $p$ as a retrieval score to decide which candidates of each attribute $c$, our method will be degraded to deterministic paradigm. Because that means that the candidate with highest probability would be most likely retrieved, and then the agent will obtain the most confident conclusion of each attribute, namely deterministic paradigm.  With our design which provides all candidate with their probabilities, agents can know the uncertainty in external environment. For example, when the conclusion with the highest probability is wrong, agents can know alternative he can visit. Additionally, our experiments shown below, with shuffling the probability distribution of all candidates of each attribute, observe that wrong probability distribution can notably decrease the performance of BeliefMem, from 42.38 / 36.30 to 27.76 / 22.91, validating the effectiveness of our design.
+**We keep $p$ out of the ranking by design.** Directly using $p$ as a retrieval score to filter candidates for each attribute $c$ would degenerate our method into a deterministic paradigm, as it simply retrieves the single most confident conclusion per attribute. In contrast, providing all candidates alongside their probabilities exposes the uncertainty to the agent, enabling it to explore viable alternatives when the top-ranked conclusion is incorrect. Furthermore, as shown below, shuffling the probability distribution across candidates within each attribute sharply degrades BeliefMem's performance from 42.38 / 36.30 to 27.76 / 22.91, validating the effectiveness of our probabilistic design.
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |
 | :--- | :---: | :---: | :---: | :---: | :---: |

@@ -75,7 +75,11 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 From the second task on, the agent uses fridge 1 in every task. BeliefMem reaches a fridge rate of 100% and an SR of 67.39%, close to the SR of 71.74% without the incorrect memory.
 
-**Summary.** The experiment covers the closed-loop evaluation. In deterministic memory, the incorrect conclusion suppresses the only action able to refute the conclusion. The resulting failures add entries that support the incorrect conclusion, and the incorrect conclusion persists after contradicting evidence appears. BeliefMem keeps the alternative conclusion visible. The visible alternative leads the agent to test fridge 1 within the first task, and the resulting observation corrects the memory. These results further support the effectiveness of BeliefMem. We will add the experiment to the revision.
+**Summary.** The experiment covers the closed-loop evaluation. In deterministic memory, the incorrect conclusion suppresses the only action able to refute the conclusion. The resulting failures add entries that support the incorrect conclusion, and the incorrect conclusion persists after contradicting evidence appears. BeliefMem keeps the alternative conclusion visible. The visible alternative leads the agent to test fridge 1 within the first task, and the resulting observation corrects the memory. These results further show that the proposed method can effectively address the self-reinforcing error in agent memory.
+
+Overall, our work firstly proposes the probabilistic memory paradigm in agent memory, and introduces a promising way to address self-reinforcing error, providing a novel insight for the community.
+
+We add this experiment and discussion in Appendix D.5 of revised version (noted with purple color).
 
 ----
 
@@ -106,7 +110,7 @@ Additionally, **BeliefMem assigns the highest belief score to true conclusion.**
 | 400 | 65.38% | 50.00% | 46.15% |
 | 500 | 84.62% | 46.15% | 42.31% |
 
-**Effect of candidate size $|H_{\text{sub}}(c)|$.** We evaluate BeliefMem's performance across different numbers of conflicting candidates $|H_{\text{sub}}(c)| \in \{2, 4, 6\}$ on ALFWorld with 50% memory corpus. The results reveal a clear trade-off between task difficulty and generalization. While a larger candidate pool improves the SR on ALF-Seen (peaking at $60.71\%$ with $|H_{\text{sub}}(c)|=6$), it degrades generalization on ALF-Unseen beyond $|\mathcal{H}_{\text{sub}}(c)|=4$, where the SR drops from $61.19\%$ to $58.21\%$. Moreover, scaling to $|H_{\text{sub}}(c)|=6$ increases execution steps across both splits (averaging $30.56$ steps). Setting $|H_{\text{sub}}(c)|=4$ strikes the best trade-off, attaining the highest overall performance ($59.88\%$ AVG SR with $29.56$ steps).
+**Effect of candidate size $|H_{\text{sub}}(c)|$.** We evaluate BeliefMem's performance across different numbers of conflicting candidates $|H_{\text{sub}}(c)| \in \{2, 4, 6\}$ on ALFWorld with 50% memory corpus. The results reveal a clear trade-off between task difficulty and generalization. While a larger candidate pool improves the SR on ALF-Seen (peaking at $60.71\%$ with $|H_{\text{sub}}(c)|=6$), it degrades generalization on ALF-Unseen beyond $|\mathcal{H}_{\text{sub}}(c)|=4$, where the SR drops from $61.19\%$ to $58.21\%$. Moreover, scaling to $|H_{\text{sub}}(c)|=6$ increases execution steps across both splits (averaging $30.56$ steps). Setting $|H_{\text{sub}}(c)|=4$ strikes the best trade-off, attaining the highest overall performance ($59.88\%$ AVG SR with $29.56$ steps). We add this discussion to Appendix D.4 of revision (noted with purple color$).
 
 | $|H_{\text{sub}}(c)|$ | ALF-Seen (SR / #Steps↓) | ALF-Unseen (SR / #Steps↓) | AVG (SR / #Steps↓) |
 | :--- | :---: | :---: | :---: |
@@ -114,13 +118,11 @@ Additionally, **BeliefMem assigns the highest belief score to true conclusion.**
 | 4 (Ours) | 58.57 / 29.77 | 61.19 / 29.34 | 59.88 / 29.56 |
 | 6 | 60.71 / 30.85 | 58.21 / 30.27 | 59.46 / 30.56 |
 
-Overall, our work firstly proposes the probabilistic memory paradigm in agent memory, and introduces a promising way to address self-reinforcing error, providing a novel insight for the community.
-
 ------
 
 **[W3&Q3:]** Incomplete discussion of works on persistent memory corruption, poisoned experience retrieval, and error propagation in self-evolving agents. && How does BeliefMem differ from existing work on persistent memory poisoning and self-reinforcing agent errors?
 
-**[A3:]** BeliefMem differs from works on persistent memory poisoning and self-reinforcing agent errors in the source of the error, the mechanism of persistence, and the soultion. Memory poisoning studies records crafted by an adversary, such as backdoor triggers planted in long-term memory by AgentPoison [1], malicious records injected purely through queries by MINJA [2], and payloads from attacker-controlled web content written into memory by Zombie Agents [3]. **BeliefMem instead addresses errors without any adversary: the agent infers a plausible but wrong conclusion from partial and ambiguous observations.** In prior work on self-reinforcing errors, an incorrect record is reused as a trusted experience and replicated in later executions [4,5]. The corresponding solutions decide whether each record is added, kept, or deleted, through quality assessment before addition [4] or consensus validation across related memories [6]. **BeliefMem targets a different mechanism: a deterministic conclusion suppresses the action that would test the conclusion, so disconfirming evidence never arrives.** BeliefMem therefore changes the representation rather than filtering records, and keeps competing conclusions with confidence scores so that the alternative remains visible and revisable. We added this discussion to Section 2.3 of revision ($\colorbox{bule}{\text{noted with blue color}}$).
+**[A3:]** BeliefMem differs from works on persistent memory poisoning and self-reinforcing agent errors in the source of the error, the mechanism of persistence, and the soultion. Memory poisoning studies records crafted by an adversary, such as backdoor triggers planted in long-term memory by AgentPoison [1], malicious records injected purely through queries by MINJA [2], and payloads from attacker-controlled web content written into memory by Zombie Agents [3]. **BeliefMem instead addresses errors without any adversary: the agent infers a plausible but wrong conclusion from partial and ambiguous observations.** In prior work on self-reinforcing errors, an incorrect record is reused as a trusted experience and replicated in later executions [4,5]. The corresponding solutions decide whether each record is added, kept, or deleted, through quality assessment before addition [4] or consensus validation across related memories [6]. **BeliefMem targets a different mechanism: a deterministic conclusion suppresses the action that would test the conclusion, so disconfirming evidence never arrives.** BeliefMem therefore changes the representation rather than filtering records, and keeps competing conclusions with confidence scores so that the alternative remains visible and revisable. We add this discussion to Section 2.3 of revision (noted with purple color$).
 
 [1] Agentpoison: Red-teaming llm agents via poisoning memory or knowledge bases. NeurIPS2024.
 [2] Memory injection attacks on LLM agents via query-only interaction. NeurIPS2025.
@@ -135,8 +137,11 @@ Overall, our work firstly proposes the probabilistic memory paradigm in agent me
 
 **[A4:]** Thank you for your question regarding our method. We hope the following response addresses your concerns.
 
-**High-Confidence beliefs still retain the uncertainty.** In BeliefMem, high-confidence beliefs do not imply deterministic certainty. When updating competing candidates with Merge, we deliberately reset them to a non-zero lower bound (e.g., $0.25$) rather than pruning them to zero. Consider the aforementioned API scenario: consecutive failures push the belief score of "API X failed" to $0.80$, while depressing competing hypotheses like "API X rate-limited" and "Network issue" to $0.25$. Upon retrieval, the agent retains a calibrated distribution over all candidates rather than a collapsed single state. This design preserves the inherent uncertainty of the environment, preventing the agent from prematurely ruling out alternatives and ensuring it remains capable of exploratory retries when downstream actions require API X.
+**High-Confidence beliefs still retain the uncertainty about competing candidates.** In BeliefMem, high-confidence beliefs do not imply deterministic certainty. When updating competing candidates with Merge, we deliberately reset them to a non-zero lower bound (e.g., $0.25$) rather than pruning them to zero. Consider the aforementioned API scenario: consecutive failures push the belief score of "API X failed" to $0.80$, while depressing competing hypotheses like "API X rate-limited" and "Network issue" to $0.25$. Upon retrieval, the agent retains a calibrated distribution over all candidates rather than a collapsed single state. This design preserves the inherent uncertainty of the environment, preventing the agent from prematurely ruling out alternatives and ensuring it remains capable of exploratory retries when downstream actions require API X.
 
+By consistently preserving uncertainty over multiple candidates rather than committing to a single deterministic conclusion, BeliefMem maintains reliable memory when facing ambiguous and noisy observations.
+
+Overall, our paper is the first work to propose the probabilistic memory paradigm which produces substantial gains and explores a new direction for agent memory in partially observable environments. 
 
 We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
 

@@ -2,7 +2,7 @@
 -----
 **[W1&Q1]:** Reliability of uncertainty represented by confidence scores updated Noisy-OR, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?
 
-**[A1:]**  We thank the reviewer for this thoughtful comment. 
+**[A1:]**  We thank the reviewer for this thoughtful comment on our work. We hope the following replies could address your concerns。
 
 **BeliefMem assigns the highest belief score to true conclusion, showing the reliability of belief score.** In experiments of Figure 4(b), we track the the Top-1 rate, defined as the fraction of attributes whose true conclusion receives the highest score. As shown in Figure 4(b) (also provided below), with gradual updates, our method BeliefMem rises the Top-1 rate from 7.69% to 84.62%, which means that 84.62% of true conclusions receive the highest belief score among all candidates. In contrast, Mem0 and A-MEM only improve the Top-1 rate to 46.15% and 42.31%, respectively. These results show that BeliefMem can calibrate the belief scores reliably using Noisy-OR update over steps.
 
@@ -37,7 +37,7 @@ Additionally, in Table 7 (provided below), shuffling the belief scores of all ca
 
 **[W2&Q2:]** Effectiveness in broader agentic setting. && Could the authors evaluate BeliefMem in more complex online agent settings where memory influences the agent's actions and subsequent observations?
 
-**[A2:]** To address your conerns, we further evaluate our method BeliefMem on online agent setting with ScienceWorld [1] benchmark. Our experiments show that BeliefMem outperforms other baseline methods and refines own performance over the online memory updates.
+**[A2:]** Thank you for your thoughtful comments and valuable suggestions. To address your conerns, we further evaluate our method BeliefMem on online agent setting with ScienceWorld [1] benchmark. Our experiments show that BeliefMem outperforms other baseline methods and refines own performance over the online memory updates.
 
 **Settings.** To evaluate BeliefMem in an online agent scenario, we conduct experiments on ScienceWorld, a text-based interactive environment covering 30 science task types. Unlike the ALFWorld setting, where memory is constructed offline from expert trajectories, the memory bank here starts empty, and the agent solves a stream of 270 tasks sequentially in a fixed order. After each task, the agent's own trajectory is written into memory via each method's native write operation and retrieved to solve subsequent tasks. The baseline methods include Mem0, A-MEM, MemoryOS, and Non-memory. The base model is Qwen3-Next-80B-A3B-Instruct. We report the average progress score (Score) defined in [1].
 

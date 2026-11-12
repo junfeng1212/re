@@ -88,10 +88,10 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 | Method | SR without incorrect memory (%) | SR with incorrect memory (%) | Fridge rate, tasks 1 to 20 (%) | Fridge rate, tasks 21 to 46 (%) |
 | --- | --- | --- | --- | --- |
 | Mem0 | 32.61 | 23.91 | 15.00 | 34.62 |
-| A-MEM | 28.26 | 19.57 | 10.00 | 19.23 |
+| A-MEM | 28.26 | 13.04 | 10.00 | 19.23 |
 | BeliefMem | 71.74 | 67.39 | 100.00 | 100.00 |
 
-**An incorrect memory misleads the agent, preventing it from checking fridge 1.** Without the incorrect memory, all three methods use fridge 1 in all 46 tasks. With the incorrect memory, Mem0 and A-MEM use fridge 1 in only **15.00% and 10.00%** of the first 20 tasks. Therefore, these incorrect memory actually misleads the agent's actions. Because every task requires fridge 1, the reduced fridge use directly lowers the SR. The SR of Mem0 drops from 32.61% to 23.91%, and the SR of A-MEM drops from 28.26% to 19.57%.
+**An incorrect memory misleads the agent, preventing it from checking fridge 1.** Without the incorrect memory, all three methods use fridge 1 in all 46 tasks. With the incorrect memory, Mem0 and A-MEM use fridge 1 in only **15.00% and 10.00%** of the first 20 tasks. Therefore, these incorrect memory actually misleads the agent's actions. Because every task requires fridge 1, the reduced fridge use directly lowers the SR. The SR of Mem0 drops from 32.61% to 23.91%, and the SR of A-MEM drops from 28.26% to 13.04%.
 
 **This incorrect memory prevents the agent from checking fridge 1 to obtain corrective observations, thereby reinforcing the incorrect memory.** After fridge 1 is restored, the environment never returns a fridge failure. However, the number of memory entries supporting “Fridge 1 cannot be opened” grows from 3 after the first task to 11 after the last task in Mem0, and from 2 to 18 in A-MEM. These new entries come from failed tasks where the agent avoided fridge 1 and attributed the failure to the fridge. Avoiding the fridge 1 therefore generates new evidence for the incorrect conclusion, even though the environment provides none.
 
@@ -222,11 +222,12 @@ We also check the numbers of all other experiments in our work, and find that th
 
 **Rerun of the affected settings.** we check the stability of API serive, and re-run the impacted experiments. The updated results are shown below. We update Table 3, Table 5, and Appendix D.2 accordingly in revised version (highlighted in red).
 
-Method,Seen SR / #Steps,Unseen SR / #Steps,Avg. SR / #Steps
-w/o belief-based memory,30.71% (43/140) / 37.84,24.63% (33/134) / 39.72,27.67% / 38.78
-w/o Add,22.14% (31/140) / 39.19,29.10% (39/134) / 41.48,25.62% / 40.34
-w/o Merge,39.29% (55/140) / 32.38,53.73% (72/134) / 32.52,46.51% / 32.45
-BeliefMem (Ours),58.57% (82/140) / 29.77,61.19% (82/134) / 29.34,59.88% / 29.56
+| Method | Seen SR / #Steps | Unseen SR / #Steps | Avg. SR / #Steps |
+| :--- | :---: | :---: | :---: |
+| w/o belief-based memory | 30.71% (43/140) / 37.84 | 24.63% (33/134) / 39.72 | 27.67% / 38.78 |
+| w/o Add | 22.14% (31/140) / 39.19 | 29.10% (39/134) / 41.48 | 25.62% / 40.34 |
+| w/o Merge | 39.29% (55/140) / 32.38 | 53.73% (72/134) / 32.52 | 46.51% / 32.45 |
+| **BeliefMem (Ours)** | **58.57% (82/140) / 29.77** | **61.19% (82/134) / 29.34** | **59.88% / 29.56** |
 
 As shown above, after removing belief-based memory, the average SR of BeliefMem decreases from  59.88% to 27.67%, showing the superiority of probabilistic memory paradigm of BeliefMem compared with deterministic paradigm.
 Additionally, w/o Add and w/o Merge degrade the performance of our method to 25.62% and 46.51%, respectively, showing consistent trend with analysis in our work. 
@@ -247,7 +248,7 @@ We refine the statement of this part to make it more clear in Appendix B.2 and B
 
 **[Q4:]** Since the retrieval score in Eq. 9 does not use the candidate scores p, does the “w/o belief-aware retrieval” ablation only remove the scores from the retrieved text given to the agent?
 
-**[A4:]** Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from 28.50 / 19.02 to 42.38 / 36.30. These results highlight the effectiveness of the probabilities distribution with candidates in BeliefMem's retrieval.
+**[A4:]** Yes.  "w/o belief-aware retrieval" means that we totally removing the probabilities of all candidates of retrieved attributes. Therefore, under this setting, agents only receive the competing conclusions of retrieved attributes. Since competing conclusions may introduce comflciting information to agents' context, w/o belief-aware retrieval degrades the average performance of BeliefMem from 42.38 / 36.30 to 28.50 / 19.02. These results highlight the effectiveness of the probabilities distribution with candidates in BeliefMem's retrieval.
 
 
 | Method | Multi-hop | Temporal | Open-domain | Single-hop | AVG |

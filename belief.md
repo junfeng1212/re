@@ -1,3 +1,27 @@
+# Summary
+
+We thank all reviewers for their insightful and constructive reviews of our manuscript. We are encouraged to hear that the reviewers found the challenge we study real and important for agent memory (Reviewers Wh7d, tp79, nZa7), our method interesting and promising (Reviewers Wh7d, tp79), and our experiments comprehensive with promising results (Reviewers tp79, nZa7). Below, we respond to each reviewer’s concerns point by point, and we have uploaded a revised manuscript. In the revision, changes made in response to Reviewers Wh7d, tp79, and nZa7 are highlighted in green, purple, and red, respectively. The main changes are as follows:
+
+I. Closed-loop evaluation in interactive environments: As suggested by Reviewers Wh7d and tp79, we evaluate BeliefMem in settings where memory guides the agent’s actions, and these actions in turn determine the observations written back into memory.
+
+i) Online memory accumulation: On ScienceWorld, the agent starts from an empty memory and solves 270 tasks across 30 task types in a fixed order, using Qwen3-Next-80B-A3B-Instruct as the backbone. After each task, every method writes the trajectory into memory through its native write operation. We compare BeliefMem with Mem0, A-MEM, MemoryOS, and a baseline without memory. **In this setting, BeliefMem continually improves in online settings, and outperforms other baselines (Appendix D.6).**
+
+ii) Self-reinforcing errors: We use all 46 ALFWorld Cool & Place tasks that require fridge 1. Every method first observes the same failed attempt to open fridge 1 and thus stores the incorrect conclusion that fridge 1 cannot be opened, although fridge 1 works normally in every task. We compare BeliefMem with Mem0 and A-MEM, with and without this incorrect memory, in terms of the success rate, the fraction of tasks in which the agent uses fridge 1, and the number of memory entries that support the incorrect conclusion. **We demonstrate that erroneous memories trap the agent in a self-reinforcing loop of misguided actions, while BeliefMem breaks this loop through dynamic memory updates (Appendix D.5).**
+
+II. Effect of the number of competing hypotheses: As suggested by Reviewer tp79, we vary the maximum number of candidate conclusions per attribute, $|\mathcal{H}_{\text{sub}}(c)| \in \{2, 4, 6\}$, on ALFWorld with 50% of the memory corpus. We present the SR and the number of steps on the seen and unseen splits (Appendix D.4). This analysis complements our existing ablations that remove or shuffle the belief scores of the candidates.
+
+III. Discussion of related work: As suggested by Reviewer tp79, we discuss prior work on persistent memory poisoning and on self-reinforcing errors in self-evolving agents (Section 2.3). Memory poisoning concerns records crafted by an adversary, whereas BeliefMem addresses wrong conclusions that the agent infers from partial observations without any adversary. Existing defenses against self-reinforcing errors decide whether each record should be added, kept, or deleted, whereas BeliefMem changes the memory representation so that competing conclusions remain visible and revisable.
+
+IV. Verification and correction of ALFWorld results: As pointed out by Reviewer nZa7, 6 success rates in Tables 2 and 5 do not correspond to an integer number of solved samples. We trace each of these values back to its evaluation log and identify two causes. The first is a transcription error in Table 2. The second is an error in computing the success rate of ablation runs that were interrupted by API failures. We correct the value in Table 2, rerun the affected ablation settings, and update Tables 3 and 5 and Appendix D.2. We also verify all other reported results against their evaluation logs and find no further errors. In addition, we merge the rows for $\lambda = 1.0$ and w/o decay in Table 8 into one row. The two rows are separate runs of the same configuration, and their small difference comes from the nondeterminism of LLM inference even at temperature 0 (Appendix D.4).
+
+V. Notation and clarification of Merge: As suggested by Reviewer nZa7, we fix inconsistent notation and clarify how Merge updates the belief scores:
+
+**At the same time, we would like to respectfully highlight that our work is the first to introduce a probabilistic memory paradigm to address self-reinforcing errors in agent memory. Instead of committing to deterministic conclusions, BeliefMem retains multiple candidates alongside their probabilities for each attribute in the external environment, allowing for reliable belief updates under noisy observations. Our extensive experiments and analyses further validate its effectiveness and robustness across various scenarios. We believe this work explores a new direction for agent memory in partially observable environments.**
+
+We thank all reviewers again for the time and valuable efforts in helping us improve the manuscript. We hope our responses have addressed all concerns, and we would sincerely appreciate it if you could take them into account in the final assessment. We are happy to engage in any further discussion!
+
+
+
 # Reviewer Wh7d [2: Weak rejection]
 -----
 **[W1&Q1]:** Reliability of uncertainty represented by confidence scores updated Noisy-OR, particularly when observations are correlated or contradictory. && Could the authors evaluate the calibration and robustness of belief scores, particularly under correlated or contradictory observations?

@@ -4,11 +4,14 @@
 
 **[A1:]** Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
 
-**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like LoCoMo and LongMemEval. Moreover, with the dataset construction alone exceeding $1,800 USD, scaling it up further would make downstream evaluation prohibitively expensive; our current size strikes the ideal balance for affordable yet rigorous evaluation.
+**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like ALFWorld [1] and LongMemEval [2]. Moreover, with the dataset construction alone exceeding $1,800 USD, scaling it up further would make downstream evaluation prohibitively expensive; our current size strikes the ideal balance for affordable yet rigorous evaluation.
 
 **Our settings ensure a strictly controlled evaluation that isolates memory recovery capabilities from confounding factors.** By building our dataset from tasks solved three consecutive times without interruption and fixing the executor, injected errors, and recovery steps, we prevent external variables (e.g., base model limits, agent framework design, or random error types) from distorting the evaluation of task recovery.
 
 **Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline.** As the first systematic study of agent task recovery, we provide not only a ready to use benchmark, but also a reproducible pipeline for interruption, error injection, and state restoration that readily extends to other models and failure scenarios.
+
+[1] ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR2021.
+[2] LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. ICLR2025.
 
 -------
 
@@ -45,6 +48,8 @@
 
 **RecoverMem prevent valid progress from failed explorations by anchoring the task state strictly to $m_k$ while selectively distilling the failed suffix $\{m_{k+1}, \dots, m_T\}$ into a failure experience module.** Given the rollback step $k$, RecoverMem retrieves the exact snapshot $m_k$ so that the established progress and remaining subgoals strictly reflect the restored environment $s_k$, completely discarding any invalid state updates recorded after step $k$. Meanwhile, our Reflection mechanism summarizes the flawed trajectory from $m_{k+1}$ to $m_T$ and appends only the failure lessons into the dedicated failed field of $m_k$ to get $\tilde{m}_k$. This way allows the agent to retain knowledge of prior exploration faults without mistaking undone actions for completed work.
 
+Overall, our work firstly investigates the practical task recovery setting in agent memory, and provides a foundation for evaluating
+and improving agent memory for reliable and efficient task recovery.
 
 We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
 
@@ -56,16 +61,17 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 **[W1:]** The problem setting is not well motivated: Practical systems persist session logs and checkpoint the environment and memory together; providing the full previous trajectory, which fits in context here, is not compared.
 
-**[A1:]** Thank you for the suggestion. We evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context instead of retrieved memory. Table R1 reports recovery performance and Table R2 reports history lengths.
+**[A1:]** Thanks for your thoughtful views on our work. To address your concerns, we evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context instead of retrieved memory. Our experiments show that appending full history into context fits our settings poorly, since observations during interactions are often ambiguous and implicit,
 
 **Table R1.** Full history versus RecoverMem.
 
 | Setting | Resumption@25% RR | Resumption@25% AS | Resumption@50% RR | Resumption@50% AS | Resumption@75% RR | Resumption@75% AS | Rollback RR | Rollback AS |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| w/o Memory | 22.11 | 182.16 | 38.47 | 151.59 | 44.23 | 141.37 | 25.96 | 263.53 |
 | Full history | 35.57 | 102.13 | 50.96 | 182.94 | 43.29 | 153.57 | 32.69 | 191.02 |
 | RecoverMem (Ours) | **49.03** | **57.55** | **70.20** | **83.88** | **87.50** | **26.83** | **43.27** | **89.35** |
 
-**Full history improves over w/o Memory but remains far below RecoverMem.** Rollback RR rises from 25.96% to 32.69%, yet averaged over the three resumption settings, full history reaches 43.27% RR and 146.21% AS, compared with 68.90% and 56.09% for RecoverMem. Under rollback, RecoverMem improves RR by 10.58 points and lowers AS by over 100 points.
+**Full history improves over w/o Memory but remains far below RecoverMem.** Rollback RR rises from 25.96% to 32.69%, yet averaged over the three resumption settings, full history reaches 43.27% RR and 146.21% AS, compared with 68.90% and 56.09% for RecoverMem. Under rollback, RecoverMem improves RR by 10.58 points and lowers AS by over 100 pp.
 
 **Full history fits our setting poorly, first because of its length and noise.** As the history grows, raw observations obscure critical context, and agents struggle to reliably extract information situated in the middle of long sequences (Liu et al., 2024). Meanwhile, full history often incur the overflow of context window. Consequently, the RR drops from 50.96% at Resumption@50% to 43.29% at Resumption@75%.
 
@@ -89,14 +95,14 @@ Overall, our work firstly proposes a benchmark to investigate task recovery abil
 
 **[A2:]**  Thanks for your questions about our proposed method. We hope the following replies can address your concerns:
 
-**That's a scenario that prior memory benchmarks do not evaluate and that RecoverMemBench evaluates systematically.** We agree that the mismatch arises because the environment is rolled back while memory is not, and we adopt this setting by design: memory persists outside the agent process, and the failed suffix contains lessons that prevent repeated exploration, so rolling memory back together with the environment would discard them. The challenge is therefore to retain the full memory while keeping it consistent with the restored environment, a requirement that prior memory benchmarks do not evaluate and that RecoverMemBench examines systematically.
+**That's a scenario that prior memory benchmarks do not evaluate and that RecoverMemBench evaluates systematically.** We agree that this mismatch arises because the environment is rolled back while the external memory persists, and we adopt this setting by design. Specifically, rolling back both the environment and the memory system simultaneously would erase lessons learned from past failures, causing agents to repeat prior errors. Conversely, rolling back only the environment preserves those failure experiences, yet it introduces the risk of stale memory states misleading the agent. Consequently, the core challenge is to retain lessons from prior failing attempts while keeping memory consistent with the restored environment.
 
 **RecoverMem is not a plain checkpoint**, for three reasons: 
 i) Each entry is a structured task state record (completed progress, remaining subgoals, failed attempts) rather than a copy of the memory bank. 
-ii) After rollback, it reflects on entries m_{k+1} to m_T to update the experience module, which a checkpoint would discard; removing this Reflection lowers RR from 43.27% to 38.46% and raises AS from 89.35% to 117.62% (Table 2). 
+ii) After rollback, it reflects on entries $m_{k+1}$ to $m_T$ to update the experience module, which a checkpoint would discard; removing this Reflection lowers RR from 43.27% to 38.46% and raises AS from 89.35% to 117.62% (Table 2). 
 ii) Snapshots alone do not resolve the retrieval bottleneck, since entries from different steps of the same task remain semantically similar (Section 3.2.1).
 
-**We also test the checkpoint view directly by equipping four baselines with stepwise snapshots (Appendix C.1, Table 4).** Because existing systems are not designed for rollback, this duplicates the full memory bank at every step and costs 36.00 to 566.26 MiB, whereas RecoverMem matches the best stepwise baseline (A-MEM, 43.27% RR) with only 1.84 MiB.
+**We also test the checkpoint view directly by equipping four baselines with stepwise snapshots (Appendix C.1, Table 4, provided below).** Because existing systems are not designed for rollback, this duplicates the full memory bank at every step and costs 36.00 to 566.26 MiB, whereas RecoverMem matches the best stepwise baseline (A-MEM, 43.27% RR) with only 1.84 MiB.
 Such memory efficiency is critical in real-world scenarios, directly affecting operational speed.
 
 | Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
@@ -111,15 +117,16 @@ Such memory efficiency is critical in real-world scenarios, directly affecting o
 
 **[W3:]** The benchmark does not support the claims: 104 tasks that GPT-4o solves reliably, with a median of 11 steps, one agent, one backbone, and one run per setting, far from the hundreds of actions in the motivation. Interruption points are set from the known length of successful runs, and rollback errors are injected by an LLM rather than made by the agent.
 
-**[A3:]**
-Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
+**[A3:]** Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
 
-**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like LongMemEval and GAIA. Moreover, with the dataset construction alone exceeding $1,800 USD, scaling it up further would make downstream evaluation prohibitively expensive; our current size strikes the ideal balance for affordable yet rigorous evaluation.
+**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like ALFWorld [1] and LongMemEval [2]. Moreover, with the dataset construction alone exceeding $1,800 USD, scaling it up further would make downstream evaluation prohibitively expensive; our current size strikes the ideal balance for affordable yet rigorous evaluation.
 
 **Our settings ensure a strictly controlled evaluation that isolates memory recovery capabilities from confounding factors.** By building our dataset from tasks solved three consecutive times without interruption and fixing the executor, injected errors, and recovery steps, we prevent external variables (e.g., base model limits, agent framework design, or random error types) from distorting the evaluation of task recovery.
 
 **Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline.** As the first systematic study of agent task recovery, we provide not only a ready to use benchmark, but also a reproducible pipeline for interruption, error injection, and state restoration that readily extends to other models and failure scenarios.
 
+[1] ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR2021.
+[2] LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. ICLR2025.
 
 ------
 
@@ -127,26 +134,26 @@ Thanks for your constructive feedback regarding our evaluation scope and experim
 
 **[A4:]** Thanks for your thoughtful views about our evaluation pipeline. We hope the following replies can make our evaluation more clear:
 
-**git diff cannot be accessed for all methods.** In Figure 7, that git diff is not the "git.diff" gile instead of the description in "" 
+**Git diff cannot be accessed for all methods.** In Figure 7, that git diff is not the "git.diff" file instead of the description in "" 
 
 **Accessing rollback step is the default setting of task rollback.** Our rollback setting aligns with practical deployment workflows, where restoring the environment inherently specifies the rollback step $k$. Because, in real-world scenarios, environment rollback is a targeted operation: people inspects the failed trajectory, locates the erroneous step, and reverts the workspace to the last valid state s_k. However, in the default setting of current memory methods, the retrieving is based on semantic query. So, they are unable to utilize that rollback step index.
 
 **Targeted experiments in Appendix C.1 further substantiate this finding.** Evaluations on our benchmark demonstrate that baselines' overwrite updates frequently trigger state inconsistencies between memory and the environment. While stepwise snapshotting addresses this issue, it fails to address retrieval bottleneck: because all recorded memories are closely related to the task query, semantic differentiation blurs, preventing the agent from retrieving the exact state required for recovery. Furthermore, stepwise baselines need to duplicate their full memory banks at every step,  requiring 19.51X - 307.75X storage costs compared with RecoverMem. That undermines their applicabilities in real-world scenarios as efficiency is one of most important parts of memory system. 
-
-Overall, our work firstly systematically investigate a crucial but ignored capabililty of agent memory, task recovery ability, and provide a solid foundation for future research.
 
 
 ----
 
 **[W5:]** It is tailored to SWE tasks and evaluated only on the authors' own benchmark, not on existing memory benchmarks.
 
-**[A5:]**  Thank you for the comment. **Existing memory benchmarks evaluate how retained knowledge benefits later tasks, and they define neither an interruption nor an environment restore step, so they cannot measure task recovery, which is why we build RecoverMemBench instead of reusing them.** We choose SWE-bench because Git lets us restore the environment to any earlier step, which task rollback requires, whereas in domains with irreversible or costly actions such a controlled rollback is hard to construct. We discuss that in our Limitation section (Appendix D), while the two failure modes we identify (semantic retrieval among similar entries and overwrite updates) stem from memory design rather than from coding. Extending RecoverMemBench to other domains with restorable environments is the main direction of our future work.
+**[A5:]**  Thank you for the thoughtful comment. We hope the following replies can address your concern.
+
+**Existing memory benchmarks evaluate how retained knowledge benefits later tasks, and they define neither an interruption nor an environment restore step, so they cannot measure task recovery, which is why we build RecoverMemBench instead of reusing them.** We choose SWE-bench because Git lets us restore the environment to any earlier step, which task rollback requires, whereas in domains with irreversible or costly actions such a controlled rollback is hard to construct. We discuss that in our Limitation section (Appendix D), while the two failure modes we identify (semantic retrieval among similar entries and overwrite updates) stem from memory design rather than from coding. Extending RecoverMemBench to other domains with restorable environments is the main direction of our future work.
 
 ---
 
 **[W6:]** The failure analysis is weakly supported: the "full memory bank" test uses the evaluation question as the retrieval query, and the questions match RecoverMem's record fields. The link between answer correctness and recovery success is not shown.
 
-**[A6:]** Thanks for your comments about our analysis. We hope the following replies can make our work more clear:
+**[A6:]** Thanks for your comments about our analysis. We hope the responses below will resolve your concerns.
 
 **The full memory bank test is a diagnostic applied only to the four baselines (Figure 4), so it cannot favor RecoverMem.** It asks whether the needed state is stored at all, and a state-specific query is the appropriate probe because the task query q is identical at every step and cannot separate entries from different steps (Section 3.2.1). Correct rates rise from 34.50% to 60.40% for A-Mem and from 36.40% to 64.75% for MemoryOS, which shows that the information is stored but not retrieved by q.
 
@@ -188,13 +195,13 @@ Overall, our work firstly systematically investigate a crucial but ignored capab
 
 **[Q1:]** Without memory, resuming at 25% is close to restarting from scratch, yet the recovery rate is only about 22%, although the agent solves all these tasks in three runs. What explains this, and what prompt does the recovered agent receive?
 
-**[A7:]** Thank you for the question. Resumption@25% is not equivalent to restarting from scratch, because recovery starts from the restored environment s_k rather than s_0, and **the first k steps may already have modified the repository or added files such as reproduction scripts (82.69% samples have modified the files in repo when resumpation@25%)**. Without memory, the fresh agent receives only the task description, so it cannot tell which changes are already present or which subtasks are complete, and it may repeat finished work (e.g., re-editing code that is already modified) or build on a wrongly assumed state. Such behavior makes the run unreliable and adds steps, which is reflected in the AS of 182.16% in Table 1. The 22.11% RR therefore does not contradict the three uninterrupted successes: those runs show that the agent can solve each task from a clean state, whereas RecoverMemBench measures whether it can recover the state of a partially modified environment, which base capability alone does not provide.
+**[A7:]** Thank you for the valuable feedback! We address your concerns below. Resumption@25% is not equivalent to restarting from scratch, because recovery starts from the restored environment s_k rather than s_0, and **the first k steps may already have modified the repository or added files such as reproduction scripts (82.69% samples have modified the files in repo when resumpation@25%)**. Without memory, the fresh agent receives only the task description, so it cannot tell which changes are already present or which subtasks are complete, and it may repeat finished work (e.g., re-editing code that is already modified) or build on a wrongly assumed state. Such behavior makes the run unreliable and adds steps, which is reflected in the AS of 182.16% in Table 1. The 22.11% RR therefore does not contradict the three uninterrupted successes: those runs show that the agent can solve each task from a clean state, whereas RecoverMemBench measures whether it can recover the state of a partially modified environment, which base capability alone does not provide.
 
-Regarding the prompt, the w/o Memory agent receives only the task description q, using the default mini-SWE-agent[1] prompt for SWE-bench, with no memory content and no summary of earlier steps. For the other methods, the prompt is identical and the retrieved memory m = Read(M, q) is placed in the initial context (Section 2.1), so memory is the only variable across methods. We will add the full prompt to the appendix.
+Regarding the prompt, the w/o Memory agent receives only the task description q, using the default mini-SWE-agent[1] prompt for SWE-bench, with no memory content and no summary of earlier steps. For the other methods, the prompt is identical and the retrieved memory m = Read(M, q) is placed in the initial context (Section 2.1), so memory is the only variable across methods. ‼️We will add the full prompt to the appendix.
 
 **[Q2:]** Additional steps include failed runs and exclude the cost of memory construction and reflection. The "over 35%" gain in the abstract is relative to the average baseline, not the strongest one.
 
-**[A8:]** 
+**[A8:]** Thanks for the insightful review. Our responses follow.
 
 **Scope of Additional Steps (AS)**. AS measures only the agent’s execution steps for completing the task, relative to the uninterrupted run (Eq. 6), and it is not a measure of total system cost. It counts the steps of failed recovery runs, which is why Section 2.4 requires reading AS together with RR, and it excludes memory construction, reflection, and latency, as stated in Appendix C.2. We will therefore write “additional steps” instead of “additional cost” in the abstract and throughout the paper. To cover the excluded part, Table 5 reports the token and storage footprint of each memory system: RecoverMem uses 1,206.27 tokens and 1.84 MiB per sample, lower than A-Mem, MemGPT, MemoryOS, and MemoryBank.
 
@@ -206,16 +213,24 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 ## Reviewer yXDZ (Weak Rejection)
 
-**[W1&Q1:]** Added value over straightforward recovery approaches is not sufficiently established without evaluating full interaction history. && Additional evidence on full-history recovery.
+**[W1&Q1&Q3:]** 1. Added value over straightforward recovery approaches is not sufficiently established without evaluating full interaction history. The snapshot comparison also requires further analysis. &&  Additional evidence on full-history recovery. && Clarification of the rollback advantage.
+
 Could you directly restore the complete interaction history for task resumption, and test both history up to (k) and full history with undone actions explicitly marked for rollback? Please report the history-length distribution and the trade-off between recovery success and cost, including results on cases where the complete history fits within the context window.
 
+Given Table 4, is RecoverMem’s advantage over the stronger snapshot-adapted baselines primarily lower storage consumption? Please clarify the rollback performance and cost claims accordingly, distinguishing storage and execution steps from total cost. Appendix C.2 already notes that the reported measurements do not establish total cost.
 
-**[A1:]** Thank you for the suggestion. We evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context instead of retrieved memory. Table R1 reports recovery performance and Table R2 reports history lengths.
+
+**[A1:]** Thank you for your thoughtful comments and valuable suggestions. We respond to each point in detail below.
+
+### Recovery with full history
+
+**Settings.** We evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context instead of retrieved memory. Table R1 reports recovery performance and Table R2 reports history lengths.
 
 **Table R1.** Full history versus RecoverMem.
 
 | Setting | Resumption@25% RR | Resumption@25% AS | Resumption@50% RR | Resumption@50% AS | Resumption@75% RR | Resumption@75% AS | Rollback RR | Rollback AS |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| w/o Memory | 22.11 | 182.16 | 38.47 | 151.59 | 44.23 | 141.37 | 25.96 | 263.53 |
 | Full history | 35.57 | 102.13 | 50.96 | 182.94 | 43.29 | 153.57 | 32.69 | 191.02 |
 | RecoverMem (Ours) | **49.03** | **57.55** | **70.20** | **83.88** | **87.50** | **26.83** | **43.27** | **89.35** |
 
@@ -238,7 +253,7 @@ Overall, our work propose RecoverMemBench, which firstly investigate the importa
 
 ------
 
-**[W2&Q3:]** The snapshot comparison also requires further analysis. &&  Clarification of the rollback advantage.
+**[W1&Q3:]** The snapshot comparison also requires further analysis. &&  Clarification of the rollback advantage.
 Given Table 4, is RecoverMem’s advantage over the stronger snapshot-adapted baselines primarily lower storage consumption? Please clarify the rollback performance and cost claims accordingly, distinguishing storage and execution steps from total cost. Appendix C.2 already notes that the reported measurements do not establish total cost.
 
 **[A2:]** We thank the reviewer for this insightful comment regarding the snapshot-adapted baselines in Appendix C.1. We clarify how these results support our core contributions and highlight the practical advantages of our method below: 
@@ -259,7 +274,7 @@ We believe that exposing these analysis in our work will motivate future researc
 | **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
 
 
-**[W3&Q2:]** It is unclear how the gains depend on the underlying model. Additional evidence on model dependence. &&
+**[W2&Q2:]** It is unclear how the gains depend on the underlying model. Additional evidence on model dependence. &&
 Could you evaluate a small set of executors with different capabilities while keeping the memory construction model fixed—for example, different sizes within one Qwen family, together with a stronger Qwen, DeepSeek, or other model? The key comparison is RecoverMem’s gain over full-history and snapshot baselines under each executor, with that model’s uninterrupted task performance also reported.
 
 **[A3:]** 

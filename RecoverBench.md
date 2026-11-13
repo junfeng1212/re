@@ -62,7 +62,7 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 **[W1:]** The problem setting is not well motivated: Practical systems persist session logs and checkpoint the environment and memory together; providing the full previous trajectory, which fits in context here, is not compared.
 
-**[A1:]** Thanks for your thoughtful views on our work. To address your concerns, we evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context instead of retrieved memory. Our experiments show that appending full history into context fits our settings poorly, since observations during interactions are often ambiguous and implicit,
+**[A1:]** Thanks for your thoughtful views on our work. To address your concerns, we evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context. **Our experiments show that appending full history into context performs poorly in our settings, since raw observations are noisy (mixing outdated details with actual progress, forcing the agent to figure out from scratch what is done and what remains)**
 
 **Table R1.** Full history versus RecoverMem.
 
@@ -74,11 +74,11 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 
 **Full history improves over w/o Memory but remains far below RecoverMem.** Rollback RR rises from 25.96% to 32.69%, yet averaged over the three resumption settings, full history reaches 43.27% RR and 146.21% AS, compared with 68.90% and 56.09% for RecoverMem. Under rollback, RecoverMem improves RR by 10.58 points and lowers AS by over 100 pp.
 
-**Full history fits our setting poorly, first because of its length and noise.** As the history grows, raw observations obscure critical context, and agents struggle to reliably extract information situated in the middle of long sequences (Liu et al., 2024). Meanwhile, full history often incur the overflow of context window. Consequently, the RR drops from 50.96% at Resumption@50% to 43.29% at Resumption@75%.
+**Full history fits our setting poorly, first because of its length and noise.** As the history grows, raw observations obscure critical context. Consistent with the lost-in-the-middle phenomenon [1], lengthy raw logs mix outdated details with actual progress, forcing the agent to figure out from scratch what is done and what remains. RecoverMem prevents this via a bounded state tracking completed progress, remaining subgoals, and failed attempts.
 
 **Under rollback, a full history fails to indicate which past explorations were erroneous.** The agent can read the entire history before step k, but the raw record does not mark which edits were erroneous, so the agent may re-enter the same failed path. RecoverMem instead records completed progress, remaining subgoals, and failed attempts with their observed outcomes, and its Reflection module turns the failed suffix into explicit lessons (removing it lowers RR from 43.27% to 38.46%, Table 2).
 
-**It's costable for checkpointing memory system at every step.** Because existing systems are not designed for checkpointing, this duplicates the full memory bank at every step and costs 36.00 to 566.26 MiB, requiring 19.51X - 307.75X storage costs compared with RecoverMem. 
+**It's costable for checkpointing memory system at every step.** Because existing systems are not designed for checkpointing, this duplicates the full memory bank at every step and costs 36.00 to 566.26 MiB, requiring 19.51X - 307.75X storage costs compared with RecoverMem as shown below. 
 
 | Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
 | :--- | :---: | :---: | :---: | :---: |
@@ -89,6 +89,8 @@ We hope our responses have addressed your concerns. If you find them helpful, we
 | **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
 
 Overall, our work firstly proposes a benchmark to investigate task recovery abilities of current memory systems, which is often ignored. And our analysis shows that these methods fail to handle task recovery setting due to their issues in both memory update and memory retrieval. We believe our work can provide new insight for future memory system research.
+
+[1] Lost in the middle: How language models use long contexts. Transactions of the association for computational linguistics 12 (2024).
 
 ----
 
@@ -120,26 +122,26 @@ Such memory efficiency is critical in real-world scenarios, directly affecting o
 
 **[A3:]** Thanks for your constructive feedback regarding our evaluation scope and experimental design. We hope the following replies could address your concerns:
 
-**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like ALFWorld [1] and LongMemEval [2]. Moreover, with the dataset construction alone exceeding $1,800 USD, scaling it up further would make downstream evaluation prohibitively expensive; our current size strikes the ideal balance for affordable yet rigorous evaluation.
+**RecoverMemBench provides a sufficient testbed while balancing peer benchmark scales and evaluation costs.** Spanning 1,445 execution steps across 10 repositories, our 312 resumption (at 25%, 50%, and 75% steps) and 104 rollback cases sufficiently expose consistent bottlenecks across 11 memory systems, matching the scale of mainstream benchmarks like ALFWorld [2] and LongMemEval [3]. Moreover, with the dataset construction alone exceeding $1,800 USD, scaling it up further would make downstream evaluation prohibitively expensive; our current size strikes the ideal balance for affordable yet rigorous evaluation.
 
 **Our settings ensure a strictly controlled evaluation that isolates memory recovery capabilities from confounding factors.** By building our dataset from tasks solved three consecutive times without interruption and fixing the executor, injected errors, and recovery steps, we prevent external variables (e.g., base model limits, agent framework design, or random error types) from distorting the evaluation of task recovery.
 
 **Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline.** As the first systematic study of agent task recovery, we provide not only a ready to use benchmark, but also a reproducible pipeline for interruption, error injection, and state restoration that readily extends to other models and failure scenarios.
 
-[1] ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR2021.
-[2] LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. ICLR2025.
+[2] ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR2021.
+[3] LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. ICLR2025.
 
 ------
 
-[‼️]**[W4:]** The evaluation of RecoverMem is not convincing: It receives the git diff (Figure 7) and the rollback step index, which the baselines do not; with step-wise snapshots, baselines reach similar recovery rates (Appendix C.1).
+**[W4:]** The evaluation of RecoverMem is not convincing: It receives the git diff (Figure 7) and the rollback step index, which the baselines do not; with step-wise snapshots, baselines reach similar recovery rates (Appendix C.1).
 
 **[A4:]** Thanks for your thoughtful views about our evaluation pipeline. We hope the following replies can make our evaluation more clear:
 
-**Git diff cannot be accessed for all methods.** In Figure 7, that git diff is not the "git.diff" file instead of the description in "" 
+**The git diff is not additional information.** It is git diff <base> <commit after step k−1>: the code changes already made within the trajectory prefix that all methods share. It is computed programmatically, not by an LLM, and contains nothing from the corrupted step k or any later step.
 
 **Accessing rollback step is the default setting of task rollback.** Our rollback setting aligns with practical deployment workflows, where restoring the environment inherently specifies the rollback step $k$. Because, in real-world scenarios, environment rollback is a targeted operation: people inspects the failed trajectory, locates the erroneous step, and reverts the workspace to the last valid state s_k. However, in the default setting of current memory methods, the retrieving is based on semantic query. So, they are unable to utilize that rollback step index.
 
-**Targeted experiments in Appendix C.1 further substantiate this finding.** Evaluations on our benchmark demonstrate that baselines' overwrite updates frequently trigger state inconsistencies between memory and the environment. While stepwise snapshotting addresses this issue, it fails to address retrieval bottleneck: because all recorded memories are closely related to the task query, semantic differentiation blurs, preventing the agent from retrieving the exact state required for recovery. Furthermore, stepwise baselines need to duplicate their full memory banks at every step,  requiring 19.51X - 307.75X storage costs compared with RecoverMem. That undermines their applicabilities in real-world scenarios as efficiency is one of most important parts of memory system. 
+**Experiments in Appendix C.1 further substantiate this finding.** Evaluations on our benchmark demonstrate that baselines' overwrite updates frequently trigger state inconsistencies between memory and the environment. While stepwise snapshotting addresses this issue, it fails to address retrieval bottleneck: because all recorded memories are closely related to the task query, semantic differentiation blurs, preventing the agent from retrieving the exact state required for recovery. Furthermore, stepwise baselines need to duplicate their full memory banks at every step,  requiring 19.51X - 307.75X storage costs compared with RecoverMem. That undermines their applicabilities in real-world scenarios as efficiency is one of most important parts of memory system. 
 
 
 ----
@@ -258,7 +260,7 @@ We added Tables R1 to R3 and this discussion and Appendix C.3 (highlighted in re
 **Cost claims.** We report three cost components separately: execution steps (AS, Table 1), memory construction tokens (Table 5), and storage (Tables 4 and 5). Since these do not establish total cost (Appendix C.2), we will replace “additional cost” with “additional execution steps” in the abstract, Section 1, and Section 4.2, and scope each claim to the component it measures. Relative to the original memory systems (Table 1), RecoverMem requires the fewest execution steps in every setting. Relative to the snapshot-adapted baselines (Table 4), its advantage lies in storage alone.
 
 
-Thank you for your thoughtful comments and valuable suggestions. We respond to each point in detail below.
+[1] Lost in the middle: How language models use long contexts. Transactions of the association for computational linguistics 12 (2024).
 
 ------
 

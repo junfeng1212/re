@@ -220,84 +220,84 @@ Could you directly restore the complete interaction history for task resumption,
 Given Table 4, is RecoverMem’s advantage over the stronger snapshot-adapted baselines primarily lower storage consumption? Please clarify the rollback performance and cost claims accordingly, distinguishing storage and execution steps from total cost. Appendix C.2 already notes that the reported measurements do not establish total cost.
 
 
-**[A1:]** Thank you for your thoughtful comments and valuable suggestions. We respond to each point in detail below.
+**[A1:]** We thank the reviewer for these constructive questions. Our answers in brief: (1) restoring the complete interaction history, with or without explicit rollback marks, yields lower RR and higher AS than RecoverMem in every setting, even though the history fits in the agent’s context window; (2) under rollback, RecoverMem’s advantage over the snapshot-adapted baselines lies primarily in storage, and these baselines in fact adopt the mechanism that our analysis identifies; (3) we will revise our cost claims to refer to execution steps and storage, and report total token cost separately.
 
-### Recovery with full history
+### Recovery with the full interaction history
 
-**Settings.** We evaluated full history directly, where the fresh agent receives the raw actions and observations up to the recovery step k in its initial context instead of retrieved memory. Table R1 reports recovery performance and Table R2 reports history lengths.
+**Setup.** A fresh mini-SWE-agent receives the raw trajectory, including all actions and observations, in its initial context. For task resumption, the history covers steps $1$ to $k$, which constitutes the complete history at interruption. For task rollback, we evaluate both variants as you suggested. *Full history ($\le k$)* keeps steps $1$ to $k$ and discards the failed suffix. Full history (all) keeps steps $1$ to $T$ and explicitly marks steps $k+1$ to $T$ as undone by rollback. We do not truncate the history to the 4,096-token budget imposed on all memory systems (Appendix B.1), so this comparison favors the full-history baseline.
 
-**Table R1.** Full history versus RecoverMem.
+Table R1. RR (%, ↑) / AS (%, ↓). For resumption, steps $1$ to $k$ already form the complete history, so the marked variant applies only to rollback.
 
-| Setting | Resumption@25% RR | Resumption@25% AS | Resumption@50% RR | Resumption@50% AS | Resumption@75% RR | Resumption@75% AS | Rollback RR | Rollback AS |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| w/o Memory | 22.11 | 182.16 | 38.47 | 151.59 | 44.23 | 141.37 | 25.96 | 263.53 |
-| Full history | 35.57 | 102.13 | 50.96 | 182.94 | 43.29 | 153.57 | 32.69 | 191.02 |
-| RecoverMem (Ours) | **49.03** | **57.55** | **70.20** | **83.88** | **87.50** | **26.83** | **43.27** | **89.35** |
+Method	Resump.@25%	Resump.@50%	Resump.@75%	Resump. Avg.	Rollback
+w/o Memory	22.11 / 182.16	38.47 / 151.59	44.23 / 141.37	34.94 / 158.37	25.96 / 263.53
+Full history ($\le k$)	35.57 / 102.13	50.96 / 182.94	43.29 / 153.57	43.27 / 146.21	32.69 / 191.02
+Full history (all, marked)	-	-	-	-	 19.23 / 268.74
+RecoverMem (Ours)	49.03 / 57.55	70.20 / 83.88	87.50 / 26.83	68.90 / 56.09	43.27 / 89.35
 
-**Table R2.** Average history length in tokens.
+**Table R2.** Average history length in tokens of each task.
 
-| Setting | Resumption@25% | Resumption@50% | Resumption@75% | Rollback |
-| :--- | :---: | :---: | :---: | :---: |
-| Tokens | 2,643 | 4,625 | 6,177 | 4,251 |
+| Setting | Resumption@25% | Resumption@50% | Resumption@75% | Rollback@k | Rollback@all |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Tokens | 2,643 | 4,625 | 6,177 | 4,251 | 8,348|
 
-**Full history improves over w/o Memory but remains far below RecoverMem.** Rollback RR rises from 25.96% to 32.69%, yet averaged over the three resumption settings, full history reaches 43.27% RR and 146.21% AS, compared with 68.90% and 56.09% for RecoverMem. Under rollback, RecoverMem improves RR by 10.58 points and lowers AS by over 100 points.
+**RecoverMem outperforms full history in every setting, including when the history fits.** All histories fit within the context window of GPT-4o (Table R2), so Table R1 directly shows the case in which the agent has access to the complete history. Even under this condition, full history reaches an average resumption RR of 43.27%. This is below 9 of the 11 memory systems in Table 1 and 25.63 pp below RecoverMem, and it comes with 146.21% AS compared with 56.09%. RecoverMem achieves both higher RR and lower AS in every setting. 
 
-**Full history fits our setting poorly, first because of its length and noise.** The average histories at Resumption@50%, Resumption@75%, and rollback (4,625, 6,177, and 4,251 tokens) exceed the 4,096 token memory budget shared by all methods (Appendix B.1), and individual samples are longer than these averages. Even when the history fits, many raw observations bury the information the agent needs, and agents use information in long contexts unreliably, especially when it lies in the middle (Liu et al., 2024). This is consistent with RR falling from 50.96% at 50% to 43.29% at 75%, although more of the task has been completed. 
+**Raw history becomes less useful as it grows.** Relative to w/o Memory, full history raises RR by 13.46 and 12.49 pp at Resumption@25% and @50%, but lowers it by 0.94 pp at @75%, and its AS exceeds that of w/o Memory at both later stages. Its RR also falls from 50.96% to 43.29% between @50% and @75%, although more of the task has been completed, whereas RecoverMem converts the additional progress into higher RR (70.20% to 87.50%). This trend is consistent with the lost-in-the-middle effect (Liu et al., 2024): as the trajectory grows, the information defining the current task state is buried among lengthy raw observations, and the agent must infer on its own which of them still describe the current state. RecoverMem avoids this by maintaining a bounded record of completed progress, remaining subgoals, and failed attempts with their observed outcomes.
 
-**Under rollback a full history does not tell the agent which past explorations were wrong.** The agent can read the entire history before step k, but the raw record does not mark which edits were erroneous, so the agent may re-enter the same failed path. RecoverMem instead records completed progress, remaining subgoals, and failed attempts with their observed outcomes, and its Reflection module turns the failed suffix into explicit lessons (removing it lowers RR from 43.27% to 38.46%, Table 2).
+**Under rollback, full history with undone actions further degrades recovery.** Keeping steps $1$ to $k$ raises RR over w/o Memory from 25.96% to 32.69%, whereas adding the marked failed suffix lowers RR to 19.23%, below w/o Memory, and raises AS to 268.74%. That indicates that these changes were undone, not that they failed, so the agent treats the failed path as a candidate solution and pursues it again, which misleads it more than having no memory at all. RecoverMem instead retrieves $m_k$, which is consistent with $s_k$, and uses Reflection to record the suffix as failed attempts to avoid. Even without Reflection, it outperforms Full history ($\le k$) under the same information scope (38.46% vs. 32.69% RR; 117.62% vs. 191.02% AS), and Reflection adds a further 4.81 RR points.
 
-**Checkpointing existing memory systems at every step is not a practical alternative either, because of storage.** Table 4 shows that this costs 36.00 to 566.26 MiB, compared with 1.84 MiB for RecoverMem. This includes MemGPT, which retains the original history: its version-aware variant requires 70.53 MiB, which is 38.33 times the storage of RecoverMem, yet reaches only 41.34% RR under rollback.
+These results show that the difficulty exposed by RecoverMemBench does not stem from a lack of access to past interactions. The complete history is available, yet it does not support reliable recovery. Recovery requires a task state that is consistent with the environment from which execution resumes, which is the central finding of our analysis and the design principle of RecoverMem. We will add Tables R1 to R3 and this discussion to Section 4.2 and Appendix C.
 
-Overall, our work propose RecoverMemBench, which firstly investigate the important but underexplored ability of agent memory in task recovery setting. Our analysis demonstrates that current memory system fails to handle task resumption and task rollback because of their drawbacks in both memory update and retrieval, providing solid foundation for future agent memory research.
-
-
-------
-
-**[W1&Q3:]** The snapshot comparison also requires further analysis. &&  Clarification of the rollback advantage.
-Given Table 4, is RecoverMem’s advantage over the stronger snapshot-adapted baselines primarily lower storage consumption? Please clarify the rollback performance and cost claims accordingly, distinguishing storage and execution steps from total cost. Appendix C.2 already notes that the reported measurements do not establish total cost.
-
-**[A2:]** We thank the reviewer for this insightful comment regarding the snapshot-adapted baselines in Appendix C.1. We clarify how these results support our core contributions and highlight the practical advantages of our method below: 
-
-**The snapshot experiment in Appendix C.1 is a controlled test of a diagnosis produced by RecoverMemBench, not a competing baseline.** RecoverMemBench shows that existing systems fail under rollback because overwrite updates keep the records from steps k+1 to T accessible after the environment is restored to s_k (Section 3.2.2). If this diagnosis is correct, equipping the same systems with stepwise snapshots, so that the memory M_k matches s_k, should improve recovery. This is what we observe: rollback RR improves for three of the four baselines (e.g., Mem0 from 26.92% to 42.31%) and AS decreases for all four (e.g., Mem0 from 179.42% to 62.16%), which supports our finding that keeping memory consistent with the restored environment is essential for rollback. The experiment therefore validates the conclusion drawn from our benchmark, and the remaining question is whether this consistency can be obtained at a practical cost, which we address next.
+### Advantage over the snapshot-adapted baselines and cost claims
 
 **Snapshot-adapted baselines incur prohibitive storage costs that exceed RecoverMem by 19.57 to 307.75 times, rendering them impractical for real-world scenarios.** Since existing memory systems are not natively designed for state rollback, preserving historical states requires duplicating their full memory banks at every step. As shown in Table 4 (summarized below), maintaining recovery effectiveness via version preservation requires between 36.00 MiB and 566.26 MiB of storage. In contrast, RecoverMem achieves the highest recovery rate (43.27%) using only 1.84 MiB by recording compact structured state updates at each step. Furthermore, naive snapshot preservation fails to resolve the semantic retrieval bottleneck. 
 
-We believe that exposing these analysis in our work will motivate future research on lightweight, recovery-aware agent memory.
+**The snapshot-adapted baselines adopt the mechanism our analysis identifies.** These variants are not existing memory systems as released. We equip them with per-step snapshots retrieved by step index, which is the solution implied by our diagnosis of memory-environment mismatch (Section 3.2.2). Averaged over the four baselines, this adaptation raises RR from 35.58% to 41.59% and lowers AS from 147.84% to 77.96%, which validates the diagnosis as a central finding of RecoverMemBench. In this setting, RecoverMem contributes a practical realization of the same mechanism.
+
+**Under resumption, the advantage does not come from storage.** Memory-environment mismatch arises only after rollback. Under resumption, $\mathcal{M}_k$ is built from steps $1$ to $k$ and is consistent with $s_k$ by construction (Eq. (3)). The snapshot at step $k$ therefore coincides with the original memory and leaves the retrieval failure of Section 3.2.1 unaddressed. RecoverMem’s resumption gains (68.90% RR versus 50.91% for MemGPT, and 56.09% AS versus 104.90% for A-MEM) stem from its structured task-state record, which answers 86.3% of task-state questions correctly, compared with at most 39.3% for the four evaluated baselines (Figure 3(a)). The same property explains why full history, which also contains all information up to step $k$, falls short.
+
+**Cost claims.** We report three cost components separately: execution steps (AS, Table 1), memory construction tokens (Table 5), and storage (Tables 4 and 5). Since these do not establish total cost (Appendix C.2), we will replace “additional cost” with “additional execution steps” in the abstract, Section 1, and Section 4.2, and scope each claim to the component it measures. Relative to the original memory systems (Table 1), RecoverMem requires the fewest execution steps in every setting. Relative to the snapshot-adapted baselines (Table 4), its advantage lies in storage alone.
 
 
-| Method | RR (%) | AS (%) | Storage (MiB) | Storage Overhead vs. Ours |
-| :--- | :---: | :---: | :---: | :---: |
-| A-MEM (Version-aware) | 43.27 | 70.56 | 36.00 | 19.57X |
-| Mem0 (Version-aware) | 42.31 | 62.16 | 203.66 | 110.68X |
-| MemGPT (Version-aware) | 41.34 | 66.33 | 70.53 | 38.33X |
-| MemoryOS (Version-aware) | 39.42 | 112.78 | 566.26 | 307.75X |
-| **RecoverMem (Ours)** | **43.27** | **89.35** | **1.84** | **1.00X** |
+Thank you for your thoughtful comments and valuable suggestions. We respond to each point in detail below.
 
+------
 
 **[W2&Q2:]** It is unclear how the gains depend on the underlying model. Additional evidence on model dependence. &&
 Could you evaluate a small set of executors with different capabilities while keeping the memory construction model fixed—for example, different sizes within one Qwen family, together with a stronger Qwen, DeepSeek, or other model? The key comparison is RecoverMem’s gain over full-history and snapshot baselines under each executor, with that model’s uninterrupted task performance also reported.
 
-**[A3:]** 
+**[A2:]**
 
-**Controlling for the executor model isolates memory system performance from base model capability.** In our benchmark, we fix the executor and exclusively collect tasks that it can successfully solve in an uninterrupted setting. Because the base model is already capable of solving every benchmark sample, this design eliminates confounding effects from intrinsic model capability, ensuring that the task recovery rate under resumption and rollback depends solely on the memory system design.
+**Benchmark construction controls for task solvability, not for the executor.** For each executor, RecoverMemBench includes only tasks that it solves in all three uninterrupted runs, so a recovery failure cannot be attributed to a task beyond the executor's capability. The executor's ability to use memory, however, may still affect recovery, which the following experiment examines.
 
-T futher address your concerns, we conduct the evaluation of our method RecoverMem with Qwen3.8-27B, Qwen3.8-Flash (125B). Specifically, we totally follow the data pipeline and evaluation protocol presented in our work (Section 2.3). With each model, we construct 104 samples for Task Resumption@50% and 104 samples for Task Rollback respectively. And GPT-4o-mini is still used for memory construction. We provide the results as follows:
+**Setup.** We add two executors of different sizes from the Qwen-family, Qwen3.8-27B and Qwen3.8-Flash (125B), alongside GPT-4o from the main experiments, and keep GPT-4o-mini as the memory construction model. For each executor, we follow Section 2.3 to construct 104 Resumption@50% samples and 104 rollback samples from the tasks it solves in all three uninterrupted runs. Since the sample sets differ across executors, we compare the margins of RecoverMem within each executor rather than absolute RR across executors. As in A1, we compare against full history and the snapshot-adapted baselines.
 
-| Base Model | Method | Task Resumption@50% RR | Task Resumption@50% AS | Task Rollback RR | Task Rollback AS |
-|---|---|---|---|---|---|
-| Qwen3.8-27B | Mem0 | 51.92% | 127.88% | 19.23% | 151.20% |
-| Qwen3.8-27B | A-Mem | 55.76% | 104.23% | 26.92% | 137.64% |
-| Qwen3.8-27B | RecoverMem | 62.50% | 91.75% | 40.38% | 93.97% |
-| Qwen3.8-Flash (125B) | Mem0 | 58.65% | 110.81% | 22.12% | 140.63% |
-| Qwen3.8-Flash (125B) | A-MEM | 61.54% | 103.59% | 29.81% | 129.74% |
-| Qwen3.8-Flash (125B) | RecoverMem | 68.27% | 70.18% | 46.15% | 82.65% |
+**Table R5.** Resumption@50%, RR (%, ↑) / AS (%, ↓).
 
-**RecoverMem achieves the highest RR and the lowest AS in every configuration.** Relative to A-MEM, the stronger of the two baselines, RecoverMem improves resumption RR by 6.74 and 6.73 pp and rollback RR by 13.46 and 16.34 pp for the 27B and 125B executors, respectively. It also lowers AS by 12.48 and 33.41 pp under resumption and by 43.67 and 47.09 pp under rollback.
+| Method | GPT-4o | Qwen3.8-27B | Qwen3.8-Flash (125B) |
+| :--- | :---: | :---: | :---: |
+| Mem0 | 50.97 / 156.78 | 51.92 / 127.88 | 58.65 / 110.81 |
+| A-MEM | 65.38 / 110.43 | 55.76 / 104.23 | 61.54 / 103.59 |
+| Full history | 50.96 / 182.94 | 50.00 / 139.42 | 56.73 / 118.92 |
+| **RecoverMem (Ours)** | **70.20 / 83.88** | **62.50 / 91.75** | **68.27 / 70.18** |
 
-**The gains do not shrink as the executor becomes larger.** Moving from 27B to 125B raises RR for all methods, yet the margin of RecoverMem over A-MEM stays at about 6.7 pp under resumption and grows from 13.46 to 16.34 pp under rollback. Even with the larger executor, A-MEM recovers only 29.81% of tasks under task rollback, which suggests that keeping memory consistent with the restored environment is not resolved by executor capacity alone.
+**Table R6.** Task rollback, RR (%, ↑) / AS (%, ↓).
 
-Overall, our benchmark is the first to investigate task recovery in memory systems. Unlike prior benchmarks that focus on accumulating experience for future tasks, it requires the memory system to maintain explicit task state at the moment of interruption.
+| Method | GPT-4o | Qwen3.8-27B | Qwen3.8-Flash (125B) |
+| :--- | :---: | :---: | :---: |
+| Mem0 | 26.92 / 179.42 | 19.23 / 151.20 | 22.12 / 140.63 |
+| A-MEM | 38.46 / 126.12 | 26.92 / 137.64 | 29.81 / 129.74 |
+| Full history ($\le k$) | 32.69 / 191.02 | 25.00 / 163.47 | 28.85 / 148.26 |
+| Mem0 (snapshot) | 42.31 / 62.16 | 36.54 / 86.54 | 41.35 / 74.83 |
+| A-MEM (snapshot) | 43.27 / 70.56 | 38.46 / 84.21 | 44.23 / 71.96 |
+| RecoverMem (Ours) | 43.27 / 89.35 | 40.38 / 93.97 | 46.15 / 82.65 |
 
-We hope our responses have addressed your concerns. If you find them helpful, we would appreciate your consideration of increasing your score.
+**RecoverMem outperforms the original systems and full history under every executor.** Relative to A-MEM, the stronger original baseline, RecoverMem improves RR by +4.82%, +6.74%, and +6.73% under resumption and by +4.81%, +13.46%, and +16.34% under rollback for GPT-4o, Qwen3.8-27B, and Qwen3.8-Flash, respectively, with lower AS in all six cases. Relative to full history, it leads in RR by at least +11.54% under resumption and +10.58% under rollback, again with lower AS in every case.
+
+**The benefit of state-consistent memory grows with executor capability.** With stronger executors (Table R4), RecoverMem's rollback margin widens from +4.81% to +13.46% and +16.34% over A-MEM, and from +10.58% to +15.38% and +17.30% over full history. Snapshot adaptation mirrors this trend, raising rollback RR by +4.81%, +11.54%, and +14.42% for A-MEM, and by +15.39%, +17.31%, and +19.23% for Mem0. While stronger executors read raw history better, they still cannot reliably identify undone progress. Resolving this requires memory consistent with $s_k$, the central diagnosis of RecoverMemBench.
+
+**Relative to the snapshot-adapted baselines, the pattern in A1 holds under every executor.** RecoverMem matches or exceeds their RR by +0.00% to +4.80%, whereas those baselines require fewer additional steps. Its advantage over snapshot adaptation therefore lies in storage, as discussed in A1.
+
+We will add Tables R5 and R6 to Appendix C. We hope our responses have addressed your concerns, and we would be grateful if you would consider raising your score.
 
 -----

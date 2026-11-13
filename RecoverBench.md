@@ -11,6 +11,7 @@
 **Beyond the static dataset, a core contribution of our work is a generalizable data construction pipeline.** As the first systematic study of agent task recovery, we provide not only a ready to use benchmark, but also a reproducible pipeline for interruption, error injection, and state restoration that readily extends to other models and failure scenarios.
 
 [1] ALFWorld: Aligning Text and Embodied Environments for Interactive Learning. ICLR2021.
+
 [2] LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory. ICLR2025.
 
 -------
